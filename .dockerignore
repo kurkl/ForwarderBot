@@ -1,0 +1,15 @@
+# Created by .ignore support plugin (hsz.mobi)
+# Project
+.idea/
+.*ignore
+README.md
+
+# Cache
+*.py[cod]
+__pycache__
+
+# Texts
+*.mo
+
+# Environment
+.env*
