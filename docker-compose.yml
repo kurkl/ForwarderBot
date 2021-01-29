@@ -1,0 +1,10 @@
+version: '3'
+services:
+
+  bot:
+    build:
+      context: .
+    restart: on-failure
+    command: bash -c "python -m app"
+    env_file:
+      - ./.env

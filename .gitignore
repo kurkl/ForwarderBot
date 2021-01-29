@@ -142,6 +142,4 @@ cython_debug/
 .idea
 venv
 .vscode
-vk_config.v2.json
-app/vk_config.v2.json
 
