@@ -4,11 +4,8 @@ env = Env()
 env.read_env()
 
 # vk settings
-VK_LOGIN = env.str("VK_LOGIN")
-VK_PASS = env.str("VK_PASS")
+VK_TOKEN = env.str("VK_TOKEN")
 VK_WALL_ID = env.int("VK_WALL_ID")
-VK_APP_ID = env.int("VK_APP_ID")
-
 # telegram settings
 TARGET_CHANNEL = env.int("TARGET_CHANNEL")
 TEST_CHANNEL = env.int("TEST_CHANNEL", 0)

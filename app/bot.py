@@ -4,18 +4,9 @@ import asyncio
 from loguru import logger
 from aiogram import Bot, Dispatcher, types, executor
 from aiovk.api import API
-from aiovk.sessions import ImplicitSession
+from aiovk.sessions import TokenSession
 
-from app.settings import (
-    TG_ME,
-    VK_PASS,
-    VK_LOGIN,
-    VK_APP_ID,
-    VK_WALL_ID,
-    LOG_CHANNEL,
-    TG_BOT_TOKEN,
-    TARGET_CHANNEL,
-)
+from app.settings import TG_ME, VK_TOKEN, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
 
 logger.add(sys.stdout, level="INFO", format="{time} - {name} - {level} - {message}")
 
@@ -83,7 +74,7 @@ def is_parser_running(task: asyncio.Future) -> bool:
 
 
 async def fetch_vk_wall(wall_id: int) -> dict:
-    async with ImplicitSession(VK_LOGIN, VK_PASS, VK_APP_ID) as session:
+    async with TokenSession(access_token=VK_TOKEN) as session:
         api = API(session)
         try:
             data = await api.wall.get(owner_id=wall_id, count=2)
