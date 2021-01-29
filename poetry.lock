@@ -35,6 +35,31 @@ yarl = ">=1.0,<2.0"
 speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
+name = "aiohttp-socks"
+version = "0.5.5"
+description = "Proxy connector for aiohttp"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+aiohttp = ">=2.3.2"
+attrs = ">=19.2.0"
+python-socks = {version = ">=1.0.1", extras = ["asyncio"]}
+
+[[package]]
+name = "aiovk"
+version = "4.0.0"
+description = "vk.com API python wrapper for asyncio"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+aiohttp = ">=3.7.3"
+aiohttp-socks = ">=0.5.5"
+
+[[package]]
 name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -233,6 +258,22 @@ python-versions = "*"
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "python-socks"
+version = "1.2.0"
+description = "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+async-timeout = {version = ">=3.0.1", optional = true, markers = "extra == \"asyncio\""}
+
+[package.extras]
+asyncio = ["async-timeout (>=3.0.1)"]
+curio = ["curio (>=1.4)"]
+trio = ["trio (>=0.16.0)"]
+
+[[package]]
 name = "pytz"
 version = "2020.5"
 description = "World timezone definitions, modern and historical"
@@ -334,7 +375,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "fe506bf644cae51fa994994674a5627ccb3cca2e5e82307c916630a379d865b1"
+content-hash = "790635893799e2d29e01ca92b3675f04d55d697acbe11c76843d5fd49e7b6587"
 
 [metadata.files]
 aiogram = [
@@ -379,6 +420,14 @@ aiohttp = [
     {file = "aiohttp-3.7.3-cp39-cp39-win32.whl", hash = "sha256:3b0036c978cbcc4a4512278e98e3e6d9e6b834dc973206162eddf98b586ef1c6"},
     {file = "aiohttp-3.7.3-cp39-cp39-win_amd64.whl", hash = "sha256:e1b95972a0ae3f248a899cdbac92ba2e01d731225f566569311043ce2226f5e7"},
     {file = "aiohttp-3.7.3.tar.gz", hash = "sha256:9c1a81af067e72261c9cbe33ea792893e83bc6aa987bfbd6fdc1e5e7b22777c4"},
+]
+aiohttp-socks = [
+    {file = "aiohttp_socks-0.5.5-py3-none-any.whl", hash = "sha256:faaa25ed4dc34440ca888d23e089420f3b1918dc4ecf062c3fd9474827ad6a39"},
+    {file = "aiohttp_socks-0.5.5.tar.gz", hash = "sha256:2eb2059756bde34c55bb429541cbf2eba3fd53e36ac80875b461221e2858b04a"},
+]
+aiovk = [
+    {file = "aiovk-4.0.0-py3-none-any.whl", hash = "sha256:ddfe732440ed4b1aae7f3ab9b698f85e6889037b3c89b5a15aab27afc9332733"},
+    {file = "aiovk-4.0.0.tar.gz", hash = "sha256:0403ae10b9b8b3c4f1dafa5a4b7ecc474e67a8520954891ac437c7ae75987845"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
@@ -485,6 +534,10 @@ pathspec = [
 python-dotenv = [
     {file = "python-dotenv-0.15.0.tar.gz", hash = "sha256:587825ed60b1711daea4832cf37524dfd404325b7db5e25ebe88c495c9f807a0"},
     {file = "python_dotenv-0.15.0-py2.py3-none-any.whl", hash = "sha256:0c8d1b80d1a1e91717ea7d526178e3882732420b03f08afea0406db6402e220e"},
+]
+python-socks = [
+    {file = "python-socks-1.2.0.tar.gz", hash = "sha256:3054a8afa984a35144198e00fed1144eeae3287cc231ac7db3908d32ab642cd4"},
+    {file = "python_socks-1.2.0-py3-none-any.whl", hash = "sha256:26e45b29e18ab7a28ad646e82d3e47a32fe13942b0b1c75ae3f6fe9e5c03efcb"},
 ]
 pytz = [
     {file = "pytz-2020.5-py2.py3-none-any.whl", hash = "sha256:16962c5fb8db4a8f63a26646d8886e9d769b6c511543557bc84e9569fb9a9cb4"},

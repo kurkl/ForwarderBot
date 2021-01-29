@@ -122,12 +122,12 @@ async def commands_handler(message: types.Message):
 
     if btn_text == "Run":
         if not is_parser_running(parser_task):
-            parser_task = asyncio.create_task(start_parsing(1))
+            parser_task = asyncio.create_task(start_parsing(300))
             logger.info(parser_task.current_task())
             parser_state = f"Начинаем парсинг контента wall_id: {VK_WALL_ID}"
             await parser_task
         else:
-            parser_state = "Парсер уже запущен"
+            parser_state = f"Парсер уже запущен wall_id: {VK_WALL_ID}"
     elif btn_text == "Logs":
         log_channel = await bot.export_chat_invite_link(LOG_CHANNEL)
         parser_state = f"Канал с логами: {log_channel}"
