@@ -3,10 +3,10 @@ import asyncio
 
 from loguru import logger
 from aiogram import Bot, Dispatcher, types, executor
-from aiovk.api import API
-from aiovk.sessions import TokenSession
 
-from app.settings import TG_ME, VK_TOKEN, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
+from app.settings import TG_ME, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
+
+from .vk_parser import fetch_vk_wall, make_telegram_data_to_send
 
 logger.add(sys.stdout, level="INFO", format="{time} - {name} - {level} - {message}")
 
@@ -16,53 +16,20 @@ parser_task = asyncio.Future()
 
 
 async def start_parsing(delay: int) -> None:
-    current_post = ""
+    current_post = {"text": ""}
     while True:
         received_post = await fetch_vk_wall(VK_WALL_ID)
 
         if not received_post["text"]:
             await bot.send_message(LOG_CHANNEL, "Skip post")
         else:
-            if received_post["text"] != current_post:
-                current_post = received_post["text"]
-
-                if "media" in received_post:
-
-                    if received_post["media"]:
-                        attach = types.MediaGroup()
-                        media = received_post["media"]
-                        caption = received_post["text"]
-
-                        if media["photo"]:
-                            attach.attach_photo(
-                                media["photo"][0],
-                                caption=caption,
-                            )
-                            if len(media["photo"]) > 1:
-                                for photo in media["photo"][1:]:
-                                    attach.attach_photo(photo)
-
-                        if media["video"]:
-                            if len(received_post["media"]["video"]) > 1:
-                                for video in received_post["media"]["video"][1:]:
-                                    attach.attach_video(video)
-                            else:
-                                if len(media["photo"]) == 0:
-                                    attach.attach_video(
-                                        media["video"][0],
-                                        caption=caption,
-                                    )
-                                else:
-                                    attach.attach_video(media["video"][0])
-
-                        try:
-                            await bot.send_media_group(TARGET_CHANNEL, attach)
-                        except Exception as err:
-                            logger.info(err)
-                            await bot.send_message(LOG_CHANNEL, "Skip post")
-                            # continue
+            if received_post["text"] != current_post["text"]:
+                current_post = received_post
+                attach = make_telegram_data_to_send(current_post)
+                if isinstance(attach, str):
+                    await bot.send_message(TARGET_CHANNEL, attach)
                 else:
-                    await bot.send_message(TARGET_CHANNEL, received_post["text"])
+                    await bot.send_media_group(TARGET_CHANNEL, attach)
             else:
                 await bot.send_message(LOG_CHANNEL, "Новых постов нет")
 
@@ -71,30 +38,6 @@ async def start_parsing(delay: int) -> None:
 
 def is_parser_running(task: asyncio.Future) -> bool:
     return True if task in asyncio.all_tasks() else False
-
-
-async def fetch_vk_wall(wall_id: int) -> dict:
-    async with TokenSession(access_token=VK_TOKEN) as session:
-        api = API(session)
-        try:
-            data = await api.wall.get(owner_id=wall_id, count=2)
-            record = data["items"][1]
-        except Exception as err:
-            logger.error(err)
-        else:
-            if "text" not in record:
-                return {"text": ""}
-
-            if "attachments" in record:
-                media_urls = {"photo": [], "video": []}
-
-                for attach in record["attachments"]:
-                    if attach["type"] == "photo":
-                        media_urls["photo"].append(attach["photo"]["photo_2560"])
-
-                return {"text": record["text"], "media": media_urls}
-            else:
-                return {"text": record["text"]}
 
 
 @dp.message_handler(commands=["start", "help"])
