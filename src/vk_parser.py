@@ -2,10 +2,11 @@ from typing import Dict, List, Union
 
 from loguru import logger
 from aiovk.api import API
-from aiogram.types import MediaGroup, InputMediaPhoto, InputMediaVideo
+from aiogram.types import MediaGroup, InputMediaPhoto
 from aiovk.sessions import TokenSession
 
-from app.settings import VK_TOKEN
+from src.settings import VK_TOKEN
+from src.database.entities import VkPostData
 
 
 def is_data_valid(data: Dict[str, List]) -> bool:
@@ -45,15 +46,23 @@ async def fetch_vk_wall(wall_id: int) -> dict:
     async with TokenSession(access_token=VK_TOKEN) as session:
         api = API(session)
         try:
-            data = await api.wall.get(owner_id=wall_id, count=2)
-            record = data["items"][1]
+            data = await api.wall.get(owner_id=wall_id, count=1)
+            record = data["items"][0]
         except Exception as err:
             logger.error(err)
         else:
             if "text" not in record:
-                return {"text": ""}
+                return {"text": "Нет текста"}
+            last_post_record = await VkPostData.get_last_post()
+            if last_post_record.idx != record["id"]:
+                await VkPostData.create_new_post({"idx": record["id"], "attachments": False})
+            else:
+                return {"text": "Новых постов нет"}
 
             if "attachments" in record:
+                await VkPostData.update.values(attachments=True).where(
+                    VkPostData.idx == record["id"]
+                ).gino.status()
                 media_urls = {"photo": [], "video": []}
 
                 for attach in record["attachments"]:

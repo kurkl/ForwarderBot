@@ -2,9 +2,11 @@ import sys
 import asyncio
 
 from loguru import logger
-from aiogram import Bot, Dispatcher, types, executor
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils.executor import Executor
 
-from app.settings import TG_ME, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
+from src.settings import TG_ME, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
+from src.database.db import db_setup
 
 from .vk_parser import fetch_vk_wall, make_telegram_data_to_send
 
@@ -12,26 +14,21 @@ logger.add(sys.stdout, level="INFO", format="{time} - {name} - {level} - {messag
 
 bot = Bot(token=TG_BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot=bot)
+runner = Executor(dp, skip_updates=True)
 parser_task = asyncio.Future()
 
 
 async def start_parsing(delay: int) -> None:
-    current_post = {"text": ""}
     while True:
         received_post = await fetch_vk_wall(VK_WALL_ID)
-
-        if not received_post["text"]:
-            await bot.send_message(LOG_CHANNEL, "Skip post")
+        if received_post["text"] in ["Новых постов нет", "Нет текста"]:
+            await bot.send_message(LOG_CHANNEL, received_post["text"])
         else:
-            if received_post["text"] != current_post["text"]:
-                current_post = received_post
-                attach = make_telegram_data_to_send(current_post)
-                if isinstance(attach, str):
-                    await bot.send_message(TARGET_CHANNEL, attach)
-                else:
-                    await bot.send_media_group(TARGET_CHANNEL, attach)
+            attach = make_telegram_data_to_send(received_post)
+            if isinstance(attach, str):
+                await bot.send_message(TARGET_CHANNEL, attach)
             else:
-                await bot.send_message(LOG_CHANNEL, "Новых постов нет")
+                await bot.send_media_group(TARGET_CHANNEL, attach)
 
         await asyncio.sleep(delay)
 
@@ -85,4 +82,5 @@ async def commands_handler(message: types.Message):
 
 
 def run_bot_polling():
-    executor.start_polling(dp, skip_updates=True)
+    db_setup(runner)
+    runner.start_polling()

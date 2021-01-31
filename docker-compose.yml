@@ -4,7 +4,21 @@ services:
   bot:
     build:
       context: .
+    depends_on:
+      - db
     restart: on-failure
-    command: bash -c "python -m app"
+    command: bash -c "alembic upgrade head && python -m src"
     env_file:
       - ./.env
+
+  db:
+    image: postgres:11
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - ./.env
+    ports:
+    - "5432:5432"
+
+volumes:
+  pgdata:
