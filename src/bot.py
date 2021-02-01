@@ -1,4 +1,3 @@
-import sys
 import asyncio
 
 from loguru import logger
@@ -7,10 +6,9 @@ from aiogram.utils.executor import Executor
 
 from src.settings import TG_ME, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
 from src.database.db import db_setup
+from src.utils.logging import logging_setup
 
 from .vk_parser import fetch_vk_wall, make_telegram_data_to_send
-
-logger.add(sys.stdout, level="INFO", format="{time} - {name} - {level} - {message}")
 
 bot = Bot(token=TG_BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot=bot)
@@ -20,11 +18,11 @@ parser_task = asyncio.Future()
 
 async def start_parsing(delay: int) -> None:
     while True:
-        received_post = await fetch_vk_wall(VK_WALL_ID)
-        if received_post["text"] in ["Новых постов нет", "Нет текста"]:
-            await bot.send_message(LOG_CHANNEL, received_post["text"])
+        received_record = await fetch_vk_wall(VK_WALL_ID)
+        if received_record["text"] in ["null", "no updates"]:
+            await bot.send_message(LOG_CHANNEL, received_record["text"])
         else:
-            attach = make_telegram_data_to_send(received_post)
+            attach = make_telegram_data_to_send(received_record)
             if isinstance(attach, str):
                 await bot.send_message(TARGET_CHANNEL, attach)
             else:
@@ -82,5 +80,6 @@ async def commands_handler(message: types.Message):
 
 
 def run_bot_polling():
+    logging_setup()
     db_setup(runner)
     runner.start_polling()

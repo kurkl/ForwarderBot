@@ -34,41 +34,39 @@ def make_telegram_data_to_send(
         msg_with_media[0] = InputMediaPhoto(media["photo"][0], caption)
     if "video" in media:
         pass
-    if "poll" in media:
-        pass
-    if "voice" in media:
+    if len(msg_with_media > 9):
         pass
 
     return msg_with_media
 
 
-async def fetch_vk_wall(wall_id: int) -> dict:
+async def fetch_vk_wall(wall_id: int) -> Dict[str, Union[str, List[str]]]:
+    result_post_record = {"text": "null"}
     async with TokenSession(access_token=VK_TOKEN) as session:
         api = API(session)
         try:
-            data = await api.wall.get(owner_id=wall_id, count=2)
-            record = data["items"][1]
+            data = await api.wall.get(owner_id=wall_id, count=2, v=5.126)
+            current_record = data["items"][1]
         except Exception as err:
             logger.error(err)
         else:
-            if "text" not in record:
-                return {"text": "Нет текста"}
-            last_post_record = await VkPostData.get_last_post()
-            if last_post_record.idx != record["id"]:
-                await VkPostData.create_new_post({"idx": record["id"], "attachments": False})
+            if "text" in current_record:
+                result_post_record.update({"text": current_record["text"]})
+            last_record_id = await VkPostData.get_last_record_id()
+            if last_record_id != current_record["id"]:
+                await VkPostData.create_new_post({"idx": current_record["id"], "attachments": False})
             else:
-                return {"text": "Новых постов нет"}
+                result_post_record.update({"text": "no updates"})
 
-            if "attachments" in record:
+            if "attachments" in current_record:
                 await VkPostData.update.values(attachments=True).where(
-                    VkPostData.idx == record["id"]
+                    VkPostData.idx == current_record["id"]
                 ).gino.status()
-                media_urls = {"photo": [], "video": []}
+                result_post_record.update({"photo": [], "video": []})
 
-                for attach in record["attachments"]:
+                for attach in current_record["attachments"]:
                     if attach["type"] == "photo":
-                        media_urls["photo"].append(attach["photo"]["photo_2560"])
+                        # TODO: select max? photo size
+                        result_post_record["photo"].append(attach["photo"]["sizes"][-1]["url"])
 
-                return {"text": record["text"], "media": media_urls}
-            else:
-                return {"text": record["text"]}
+            return result_post_record

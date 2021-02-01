@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from gino import Gino
 from sqlalchemy import inspect
@@ -43,13 +43,12 @@ class VkPostData(TimedBaseModel):
     attachments = db.Column(db.Boolean, default=False)
 
     @classmethod
-    async def get_last_post(cls) -> Any:
+    async def get_last_record_id(cls) -> int:
         last_post = await cls.query.order_by(cls.idx.desc()).gino.first()
         if not last_post:
-            await cls.create_new_post({"idx": 1, "attachments": False})
-            last_post = await cls.get_last_post()
-        return last_post
+            return -1
+        return last_post.idx
 
     @classmethod
-    async def create_new_post(cls, data: Dict[str, str]) -> None:
+    async def create_new_post(cls, data: Dict[str, Union[str, bool]]) -> None:
         await cls.create(idx=data["idx"], attachments=data["attachments"])
