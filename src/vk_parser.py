@@ -46,8 +46,8 @@ async def fetch_vk_wall(wall_id: int) -> dict:
     async with TokenSession(access_token=VK_TOKEN) as session:
         api = API(session)
         try:
-            data = await api.wall.get(owner_id=wall_id, count=1)
-            record = data["items"][0]
+            data = await api.wall.get(owner_id=wall_id, count=2)
+            record = data["items"][1]
         except Exception as err:
             logger.error(err)
         else:
