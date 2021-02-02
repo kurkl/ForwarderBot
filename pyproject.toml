@@ -14,6 +14,7 @@ gino = "^1.0.1"
 alembic = "^1.5.3"
 asyncpg = "^0.21.0"
 psycopg2-binary = "^2.8.6"
+aiojobs = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

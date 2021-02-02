@@ -48,6 +48,17 @@ attrs = ">=19.2.0"
 python-socks = {version = ">=1.0.1", extras = ["asyncio"]}
 
 [[package]]
+name = "aiojobs"
+version = "0.3.0"
+description = "Jobs scheduler for managing background task (asyncio)."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.2.0)"]
+
+[[package]]
 name = "aiovk"
 version = "4.0.0"
 description = "vk.com API python wrapper for asyncio"
@@ -463,7 +474,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1d6709b86de391cc26ccb95c7d232c9e9dd727b5480111185a1c188952db3406"
+content-hash = "50541943b36766c839581729028a7df114e80bea22efb34f5fc2e5faa97a55e2"
 
 [metadata.files]
 aiogram = [
@@ -512,6 +523,10 @@ aiohttp = [
 aiohttp-socks = [
     {file = "aiohttp_socks-0.5.5-py3-none-any.whl", hash = "sha256:faaa25ed4dc34440ca888d23e089420f3b1918dc4ecf062c3fd9474827ad6a39"},
     {file = "aiohttp_socks-0.5.5.tar.gz", hash = "sha256:2eb2059756bde34c55bb429541cbf2eba3fd53e36ac80875b461221e2858b04a"},
+]
+aiojobs = [
+    {file = "aiojobs-0.3.0-py3-none-any.whl", hash = "sha256:ed49e9ea1be0261fde99305c84691b440f69172016c7b372f9c411dac082a65f"},
+    {file = "aiojobs-0.3.0.tar.gz", hash = "sha256:f6631d42dc4308f7d883abbd70d4e976f3fcc35a3ba1e8eae5d4af4940a1e0c3"},
 ]
 aiovk = [
     {file = "aiovk-4.0.0-py3-none-any.whl", hash = "sha256:ddfe732440ed4b1aae7f3ab9b698f85e6889037b3c89b5a15aab27afc9332733"},
