@@ -44,7 +44,7 @@ class VkPostData(TimedBaseModel):
 
     @classmethod
     async def get_last_record_id(cls) -> int:
-        last_post = await cls.query.order_by(cls.id.desc()).gino.first()
+        last_post = await cls.query.order_by(cls.idx.desc()).gino.first()
         if not last_post:
             return -1
         return last_post.idx
