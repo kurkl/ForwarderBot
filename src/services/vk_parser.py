@@ -22,7 +22,10 @@ def convert_data_to_tg(data: dict) -> Union[str, List[MediaGroup]]:
     if "video" in media:
         pass
 
-    return msg_with_media
+    if not msg_with_media:
+        return caption
+    else:
+        return msg_with_media
 
 
 class VkParser:
