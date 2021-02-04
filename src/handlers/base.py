@@ -1,8 +1,8 @@
 from loguru import logger
 from aiogram import types
 
-from src.bot import dp, bot, broadcaster
-from src.settings import TG_ME, LOG_CHANNEL
+from src.loader import dp, bot, broadcaster
+from src.settings import TG_ME, VK_TOKEN, VK_WALL_ID, LOG_CHANNEL, TARGET_CHANNEL
 from src.utils.keyboards import DefaultConstructor
 
 
@@ -16,6 +16,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(lambda msg: msg.chat.id == TG_ME)
 async def vk_parser_commands_handler(message: types.Message):
+    await broadcaster.get_loop()
     btn_text = message.text
     logger.debug(f"Command {btn_text}")
 
@@ -25,7 +26,7 @@ async def vk_parser_commands_handler(message: types.Message):
         log_channel = await bot.export_chat_invite_link(LOG_CHANNEL)
         await message.answer(f"Канал с логами: {log_channel}")
     elif btn_text == "Status":
-        await message.answer(f"Парсер {broadcaster.get_status()}")
+        await message.answer(f"Работает {broadcaster.status} потоков")
     elif btn_text == "Stop":
         await broadcaster.stop_broadcasting()
     else:

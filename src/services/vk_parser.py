@@ -1,17 +1,17 @@
 import asyncio
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
+from contextlib import contextmanager
 
+import aiojobs
 from loguru import logger
 from aiovk.api import API
-from aiogram.types import MediaGroup, InputMediaPhoto
+from aiogram.types import MediaGroup, InputMediaPhoto, InputMediaVideo
 from aiovk.sessions import TokenSession
 
-from src.settings import VK_TOKEN
 from src.database.entities import VkPostData
 
 
-def convert_data_to_tg(data: dict) -> Union[str, List[MediaGroup]]:
-
+def convert_data_to_tg(data: dict) -> List[InputMediaPhoto]:
     msg_with_media = []
     media, caption = data["media"], data["text"]
 
@@ -29,13 +29,21 @@ def convert_data_to_tg(data: dict) -> Union[str, List[MediaGroup]]:
 
 
 class VkParser:
-    def __init__(self, bot, wall_ids: Union[int, List[int]]) -> None:
-        self._bot = bot
+    """
+    Parse vk source with https://vk.com/dev/methods
+    """
+
+    def __init__(self, wall_ids, token):
         self._wall_ids = wall_ids
+        self._token = token
+
+    @contextmanager
+    async def _session_scope(self):
+        pass
 
     async def fetch_vk_wall(self) -> Dict[str, Union[str, List[str]]]:
         result_post_record = {"text": "null", "media": {}}
-        async with TokenSession(access_token=VK_TOKEN) as session:
+        async with TokenSession(access_token=self._token) as session:
             api = API(session)
             try:
                 data = await api.wall.get(owner_id=self._wall_ids, count=2, v=5.126)
@@ -66,25 +74,42 @@ class VkParser:
                 return result_post_record
 
 
-class VkParserBroadcaster(VkParser):
-    def __init__(
-        self,
-        bot,
-        wall_ids: Union[int, List[int]],
-        target_channels: List[int],
-        log_channel: int,
-        private: int,
-        delay: int = 300,
-    ):
-        super().__init__(bot, wall_ids)
-        self._task = asyncio.Task
+class VkBroadcaster(VkParser):
+    """
+    TODO: Need custom delay for each channel
+    """
+
+    def __init__(self, bot, wall_ids, target_channels, log_channel, private, token, delay):
+        super().__init__(wall_ids, token)
+        self._bot = bot
         self._target_channels = target_channels
         self._delay = delay
         self._log_channel = log_channel
         self._private = private
-        self._status = "STOPPED"
 
-    async def _send_message(self, channel: int, payload: Union[str, dict]) -> None:
+    async def _async_init(self):
+        """
+        Async class init or get background object
+        :return: background task instance
+        """
+        if hasattr(self, "_broadcaster"):
+            if not self._broadcaster.closed:
+                return
+        self._broadcaster = await aiojobs.create_scheduler()
+        return self
+
+    # def __await__(self):
+    #     """
+    #     Await constructor
+    #     """
+    #     return self._async_init().__await__()
+
+    async def _send_message(self, channel: int, payload: Union[str, list]):
+        """
+        Send bot text message or message with media attach
+        :param channel: telegram channel id
+        :param payload: text or text with media
+        """
         if isinstance(payload, str):
             await self._bot.send_message(channel, payload)
         else:
@@ -99,23 +124,49 @@ class VkParserBroadcaster(VkParser):
                 attach = convert_data_to_tg(content)
                 for channel in self._target_channels:
                     await self._send_message(channel, attach)
+
             await asyncio.sleep(self._delay)
 
     async def start_broadcasting(self) -> None:
-        if self._status != "RUNNING":
-            self._task = asyncio.create_task(self._broadcasting())
-            self._status = "RUNNING"
+        """
+        Run background vk source parsing
+        """
+        if self._broadcaster.active_count == 0:
             await self._send_message(self._private, "Поехали!")
+            await self._broadcaster.spawn(self._broadcasting())
         else:
             await self._send_message(self._private, "Уже запущено")
 
     async def stop_broadcasting(self) -> None:
-        if self._status != "STOPPED":
-            self._task.cancel()
-            self._status = "STOPPED"
+        if self._broadcaster.active_count > 0:
             await self._send_message(self._private, "Останавливаемся")
+            await self._broadcaster.close()
         else:
             await self._send_message(self._private, "Уже остановлено")
 
-    def get_status(self) -> str:
-        return self._status
+    async def get_loop(self):
+        await self._async_init()
+
+    @property
+    def status(self) -> int:
+        return self._broadcaster.active_count
+
+
+def create_broadcaster(
+    bot,
+    wall_ids: List[int],
+    target_channels: List[int],
+    log_channel: int,
+    private: int,
+    token: str = None,
+    delay: int = 300,
+):
+    return VkBroadcaster(
+        bot,
+        wall_ids=wall_ids,
+        token=token,
+        target_channels=target_channels,
+        log_channel=log_channel,
+        private=private,
+        delay=delay,
+    )
