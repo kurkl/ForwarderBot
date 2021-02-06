@@ -1,17 +1,16 @@
 import asyncio
-from typing import Dict, List, Union, Optional
-from contextlib import contextmanager
+from typing import Dict, List, Union
 
 import aiojobs
 from loguru import logger
 from aiovk.api import API
-from aiogram.types import MediaGroup, InputMediaPhoto, InputMediaVideo
+from aiogram.types import InputMediaPhoto
 from aiovk.sessions import TokenSession
 
-from src.database.entities import VkPostData
+from src.database.entities import User, VkPostData
 
 
-def convert_data_to_tg(data: dict) -> List[InputMediaPhoto]:
+def convert_data_to_tg(data: dict) -> Union[str, List[InputMediaPhoto]]:
     msg_with_media = []
     media, caption = data["media"], data["text"]
 
@@ -33,16 +32,13 @@ class VkParser:
     Parse vk source with https://vk.com/dev/methods
     """
 
-    def __init__(self, wall_ids, token):
+    def __init__(self, wall_ids, token, user):
         self._wall_ids = wall_ids
         self._token = token
-
-    @contextmanager
-    async def _session_scope(self):
-        pass
+        self._user = user
 
     async def fetch_vk_wall(self) -> Dict[str, Union[str, List[str]]]:
-        result_post_record = {"text": "null", "media": {}}
+        result_post_record = {"text": "null", "media": {"photo": [], "video": []}}
         async with TokenSession(access_token=self._token) as session:
             api = API(session)
             try:
@@ -53,18 +49,19 @@ class VkParser:
             else:
                 if "text" in current_record:
                     result_post_record.update({"text": current_record["text"]})
-                last_record_id = await VkPostData.get_last_record_id()
+                last_record_id = await VkPostData.get_last_record_id(self._user.id)
                 if last_record_id != current_record["id"]:
-                    await VkPostData.create_new_post({"idx": current_record["id"], "attachments": False})
+                    await VkPostData.create_new_record(
+                        {"user_id": self._user.id, "id": current_record["id"], "attachments": False}
+                    )
                 else:
                     result_post_record.update({"text": "no updates"})
                     return result_post_record
 
                 if "attachments" in current_record:
                     await VkPostData.update.values(attachments=True).where(
-                        VkPostData.idx == current_record["id"]
+                        VkPostData.id == current_record["id"]
                     ).gino.status()
-                    result_post_record.update({"media": {"photo": [], "video": []}})
 
                     for attach in current_record["attachments"]:
                         if attach["type"] == "photo":
@@ -79,8 +76,8 @@ class VkBroadcaster(VkParser):
     TODO: Need custom delay for each channel
     """
 
-    def __init__(self, bot, wall_ids, target_channels, log_channel, private, token, delay):
-        super().__init__(wall_ids, token)
+    def __init__(self, bot, wall_ids, user, target_channels, log_channel, private, token, delay):
+        super().__init__(wall_ids, token, user)
         self._bot = bot
         self._target_channels = target_channels
         self._delay = delay
@@ -115,7 +112,7 @@ class VkBroadcaster(VkParser):
         else:
             await self._bot.send_media_group(channel, payload)
 
-    async def _broadcasting(self) -> None:
+    async def _broadcasting(self):
         while True:
             content = await self.fetch_vk_wall()
             if content["text"] in ["null", "no updates"]:
@@ -127,7 +124,7 @@ class VkBroadcaster(VkParser):
 
             await asyncio.sleep(self._delay)
 
-    async def start_broadcasting(self) -> None:
+    async def start_broadcasting(self):
         """
         Run background vk source parsing
         """
@@ -137,7 +134,7 @@ class VkBroadcaster(VkParser):
         else:
             await self._send_message(self._private, "Уже запущено")
 
-    async def stop_broadcasting(self) -> None:
+    async def stop_broadcasting(self):
         if self._broadcaster.active_count > 0:
             await self._send_message(self._private, "Останавливаемся")
             await self._broadcaster.close()
@@ -158,6 +155,7 @@ def create_broadcaster(
     target_channels: List[int],
     log_channel: int,
     private: int,
+    user: User,
     token: str = None,
     delay: int = 300,
 ):
@@ -169,4 +167,5 @@ def create_broadcaster(
         log_channel=log_channel,
         private=private,
         delay=delay,
+        user=user,
     )

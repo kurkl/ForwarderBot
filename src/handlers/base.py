@@ -14,23 +14,25 @@ async def send_welcome(message: Message):
     await message.reply("Bot menu", reply_markup=keyboard_markup)
 
 
-# @dp.message_handler(lambda msg: msg.chat.id == TG_ME)
-# async def vk_parser_commands_handler(message: types.Message):
-#     await broadcaster.get_loop()
-#     btn_text = message.text
-#     logger.debug(f"Command {btn_text}")
-#
-#     if btn_text == "Run":
-#         await broadcaster.start_broadcasting()
-#     elif btn_text == "Logs":
-#         log_channel = await bot.export_chat_invite_link(LOG_CHANNEL)
-#         await message.answer(f"Канал с логами: {log_channel}")
-#     elif btn_text == "Status":
-#         await message.answer(f"Работает {broadcaster.status} потоков")
-#     elif btn_text == "Stop":
-#         await broadcaster.stop_broadcasting()
-#     else:
-#         await message.answer(f'Command "{message.text}" is incorrect, see /help')
+@dp.message_handler(is_superuser=True)
+async def vk_parser_commands_handler(message: Message):
+    # await broadcaster.get_loop()
+    btn_text = message.text
+    logger.debug(f"Command {btn_text}")
+
+    if btn_text == "Run":
+        await message.answer("Run")
+        # await broadcaster.start_broadcasting()
+    elif btn_text == "Logs":
+        log_channel = await bot.export_chat_invite_link(LOG_CHANNEL)
+        await message.answer(f"Канал с логами: {log_channel}")
+    elif btn_text == "Status":
+        await message.answer(f"Работает потоков")
+    elif btn_text == "Stop":
+        await message.answer("Stop")
+        # await broadcaster.stop_broadcasting()
+    else:
+        await message.answer(f'Command "{message.text}" is incorrect, see /help')
 
 
 @dp.errors_handler()
