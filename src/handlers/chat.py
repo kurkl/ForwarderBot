@@ -1,6 +1,6 @@
 from aiogram import types
 
-from src.loader import dp
+from src.runner import dp
 
 
 @dp.message_handler(content_types=types.ContentTypes.NEW_CHAT_MEMBERS)
