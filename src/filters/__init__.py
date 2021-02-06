@@ -1,5 +1,5 @@
-from aiogram import Dispatcher
 from loguru import logger
+from aiogram import Dispatcher
 
 
 def filters_setup(dispatcher: Dispatcher):
@@ -7,4 +7,3 @@ def filters_setup(dispatcher: Dispatcher):
     from .superuser import IsSuperUserFilter
 
     dispatcher.filters_factory.bind(IsSuperUserFilter)
-

@@ -1,9 +1,9 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils.executor import Executor
 
+from src.filters import filters_setup
 from src.settings import DEBUG, TG_BOT_TOKEN
 from src.database.db import db_setup
-from src.filters import filters_setup
 from src.utils.logging import logging_setup
 
 bot = Bot(token=TG_BOT_TOKEN, parse_mode=types.ParseMode.HTML, validate_token=True)
