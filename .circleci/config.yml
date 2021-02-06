@@ -34,7 +34,8 @@ jobs:
           name: Publish Docker Image to Canister
           command: |
             echo "$DOCKERCANISTER_PASS" | docker login -u "$DOCKERCANISTER_USERNAME" --password-stdin cloud.canister.io:5000
-            docker push $IMAGE_NAME:latest
+            docker tag $IMAGE_NAME cloud.canister.io:5000/$IMAGE_NAME:latest
+            docker push cloud.canister.io:5000/$IMAGE_NAME
 workflows:
   version: 2
   build-master:
