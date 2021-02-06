@@ -11,6 +11,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+          docker_layer_caching: true
       - run:
           name: Build Docker image
           command: docker build -t $IMAGE_NAME:latest .
@@ -35,7 +36,7 @@ jobs:
           command: |
             echo "$DOCKERCANISTER_PASS" | docker login -u "$DOCKERCANISTER_USERNAME" --password-stdin cloud.canister.io:5000
             docker tag $IMAGE_NAME cloud.canister.io:5000/$IMAGE_NAME:latest
-            docker push cloud.canister.io:5000/$IMAGE_NAME
+            docker push cloud.canister.io:5000/$IMAGE_NAME:latest
 workflows:
   version: 2
   build-master:
