@@ -1,21 +1,21 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils.executor import Executor
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
-from src.settings import DEBUG, TG_ME, VK_WALL_ID, LOG_CHANNEL, TG_BOT_TOKEN, TARGET_CHANNEL
+from src.filters import filters_setup
+from src.settings import DEBUG, TG_BOT_TOKEN
 from src.database.db import db_setup
 from src.utils.logging import logging_setup
-from src.services.vk_parser import VkParserBroadcaster
 
 bot = Bot(token=TG_BOT_TOKEN, parse_mode=types.ParseMode.HTML, validate_token=True)
 dp = Dispatcher(bot=bot)
 runner = Executor(dp, skip_updates=True)
-broadcaster = VkParserBroadcaster(bot, VK_WALL_ID, [TARGET_CHANNEL], LOG_CHANNEL, TG_ME)
 
 
-def run_bot_polling():
+def run_bot():
     logging_setup()
     db_setup(runner)
+    filters_setup(dp)
+    # noinspection PyUnresolvedReferences
     import src.handlers
 
     if DEBUG:

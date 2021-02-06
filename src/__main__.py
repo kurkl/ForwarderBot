@@ -1,4 +1,4 @@
-from src.bot import run_bot_polling
+from src.runner import run_bot
 
 if __name__ == "__main__":
-    run_bot_polling()
+    run_bot()

@@ -6,17 +6,23 @@ authors = ["LehaDurotar <hwick1396@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+# Telegram api
 aiogram = "^2.11.2"
-loguru = "^0.5.3"
-environs = "^9.3.0"
-aiovk = "^4.0.0"
+# Database
 gino = "^1.0.1"
 alembic = "^1.5.3"
 asyncpg = "^0.21.0"
 psycopg2-binary = "^2.8.6"
+# Vkontakte api
+aiovk = "^4.0.0"
+# Misc
+loguru = "^0.5.3"
+environs = "^9.3.0"
 aiojobs = "^0.3.0"
+pydantic = "^1.7.3"
 
 [tool.poetry.dev-dependencies]
+# Linter, formatter
 black = "^20.8b1"
 isort = "^5.7.0"
 
