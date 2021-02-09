@@ -6,6 +6,7 @@ services:
       context: .
     depends_on:
       - db
+      - redis
     restart: on-failure
     command: bash -c "alembic upgrade head && python -m src"
     env_file:
@@ -17,8 +18,15 @@ services:
       - pgdata:/var/lib/postgresql/data
     env_file:
       - ./.env
-    ports:
-    - "5432:5432"
+
+  redis:
+    image: library/redis:5-alpine
+    restart: on-failure
+    volumes:
+    - redis-data:/data
+    env_file:
+      - ./.env
 
 volumes:
   pgdata:
+  redis-data:
