@@ -1,8 +1,8 @@
 """Add user, chat models
 
-Revision ID: bec7731a7aa2
+Revision ID: b7c6349aeb7e
 Revises: 330668cd2e5d
-Create Date: 2021-02-06 09:21:32.207662
+Create Date: 2021-02-09 22:10:43.673182
 
 """
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "bec7731a7aa2"
+revision = "b7c6349aeb7e"
 down_revision = "330668cd2e5d"
 branch_labels = None
 depends_on = None
@@ -31,6 +31,7 @@ def upgrade():
         "users",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("is_superuser", sa.Boolean(), nullable=True),
+        sa.Column("is_active", sa.Boolean(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
         sa.PrimaryKeyConstraint("id"),

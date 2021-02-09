@@ -13,7 +13,7 @@ from aiogram.utils.callback_data import CallbackData
 
 def create_keyboard_layout(
     buttons: List[Union[InlineKeyboardButton, KeyboardButton]], count: List[int]
-) -> Union[InlineKeyboardMarkup, ReplyKeyboardMarkup]:
+) -> List[list]:
     if sum(count) != len(buttons):
         raise ValueError("Количество кнопок не совпадает со схемой")
     tmplist = []
@@ -27,7 +27,7 @@ def create_keyboard_layout(
 class DefaultConstructor:
     aliases = {"cb": "callback_data"}
     available_properities = ["text", "callback_data"]
-    properties_amount = 1
+    properties_amount = 2
 
     @staticmethod
     def create_kb(
@@ -36,7 +36,8 @@ class DefaultConstructor:
     ) -> ReplyKeyboardMarkup:
         kb = ReplyKeyboardMarkup()
         kb.row_width = max(schema)
-        btns = []
+        buttons = []
+        # noinspection DuplicatedCode
         for a in actions:
             if isinstance(a, str):
                 a = {"text": a}
@@ -47,16 +48,13 @@ class DefaultConstructor:
                     del a[k]
             for k in a:
                 if k in DefaultConstructor.available_properities:
-                    if len(data) < DefaultConstructor.properties_amount:
-                        data[k] = a[k]
-                    else:
-                        break
+                    data[k] = a[k]
+                else:
+                    break
             if "callback_data" in data:
                 data["callback_data"] = data["callback_data"][1].new(**data["callback_data"][0])
-            if len(data) != DefaultConstructor.properties_amount:
-                raise ValueError("Недостаточно данных для создания кнопки")
-            btns.append(KeyboardButton(**data))
-        kb.keyboard = create_keyboard_layout(btns, schema)
+            buttons.append(KeyboardButton(**data))
+        kb.keyboard = create_keyboard_layout(buttons, schema)
         kb.resize_keyboard = True
         return kb
 
@@ -73,7 +71,6 @@ class InlineConstructor:
         "callback_game",
         "pay",
     ]
-    properties_amount = 2
 
     @staticmethod
     def create_kb(
@@ -93,7 +90,7 @@ class InlineConstructor:
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup()
         kb.row_width = max(schema)
-        btns = []
+        buttons = []
         # noinspection DuplicatedCode
         for a in actions:
             data: Dict[
@@ -112,18 +109,15 @@ class InlineConstructor:
                     del a[k]
             for k in a:
                 if k in InlineConstructor.available_properities:
-                    if len(data) < InlineConstructor.properties_amount:
-                        data[k] = a[k]
-                    else:
-                        break
+                    data[k] = a[k]
+                else:
+                    break
             if "callback_data" in data:
                 data["callback_data"] = data["callback_data"][1].new(**data["callback_data"][0])
             if "pay" in data:
-                if len(btns) != 0 and data["pay"]:
+                if len(buttons) != 0 and data["pay"]:
                     raise ValueError("Платежная кнопка должна идти первой в клавиатуре")
                 data["pay"] = a["pay"]
-            if len(data) != InlineConstructor.properties_amount:
-                raise ValueError("Недостаточно данных для создания кнопки")
-            btns.append(InlineKeyboardButton(**data))
-        kb.inline_keyboard = create_keyboard_layout(btns, schema)
+            buttons.append(InlineKeyboardButton(**data))
+        kb.inline_keyboard = create_keyboard_layout(buttons, schema)
         return kb

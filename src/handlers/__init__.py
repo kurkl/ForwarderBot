@@ -1,1 +1,1 @@
-from . import base, chat, superuser_settings
+from . import base, chat, errors, superuser_settings

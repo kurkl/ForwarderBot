@@ -8,10 +8,12 @@ from src.database.entities import User
 
 @dataclass
 class IsSuperUserFilter(BoundFilter):
+    """"""
+
     key = "is_superuser"
     is_superuser: bool
 
     async def check(self, obj) -> bool:
-        # data = ctx_data.get()
-        user = await User.get(obj.from_user.id)
+        data = ctx_data.get()
+        user = await User.get(data["user"])
         return user.is_superuser
