@@ -142,4 +142,4 @@ cython_debug/
 .idea
 venv
 .vscode
-
+data
