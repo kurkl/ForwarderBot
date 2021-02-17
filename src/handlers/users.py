@@ -11,25 +11,6 @@ from src.database.entities import User
 base_user_cb = CallbackData("level", "action")
 
 
-@dp.message_handler(CommandStart())
-async def cmd_start(message: Message, user: User):
-    logger.info(f"User {message.from_user.id} start conversation with bot")
-    await message.answer(
-        f"Привет {hbold(message.from_user.full_name)}.\n"
-        f"Чтобы начать, используй: /service\nПомощь: /help\n"
-        f"Исходный код: {hlink('GitHub', 'https://github.com/LehaDurotar/ForwarderTestBot')}"
-    )
-    await user.update(is_active=True).apply()
-
-
-@dp.message_handler(CommandHelp())
-async def cmd_help(message: Message):
-    logger.info(f"User {message.from_user.id} send help command")
-    await message.reply(
-        f"{hbold('Список команд:')}\n/help - Увидеть это сообщение\n" f"/service - Основной функционал\n"
-    )
-
-
 @dp.message_handler(commands=["service"])
 async def cb_base_user_actions(message: Message):
     markup = InlineConstructor.create_kb(
