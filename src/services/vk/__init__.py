@@ -1,1 +1,1 @@
-from .broadcaster import VkBroadcaster
+from .broadcaster import get_vk_broadcaster
