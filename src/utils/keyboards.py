@@ -1,53 +1,54 @@
 from typing import Dict, List, Tuple, Union
 
-from aiogram.types import (
-    LoginUrl,
-    CallbackGame,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
 
-def create_keyboard_layout(
-    buttons: List[Union[InlineKeyboardButton, KeyboardButton]], count: List[int]
-) -> List[list]:
+def create_keyboard_layout(buttons: list, count: List[int]) -> List[list]:
     if sum(count) != len(buttons):
         raise ValueError("Количество кнопок не совпадает со схемой")
-    tmplist = []
+    kb_layout = []
     for a in count:
-        tmplist.append([])
+        kb_layout.append([])
         for _ in range(a):
-            tmplist[-1].append(buttons.pop(0))
-    return tmplist
+            kb_layout[-1].append(buttons.pop(0))
+    return kb_layout
 
 
-class DefaultConstructor:
+class Constructor:
     aliases = {"cb": "callback_data"}
-    available_properities = ["text", "callback_data"]
-    properties_amount = 2
+    available_properities = {
+        "default": ["text", "callback_data"],
+        "inline": [
+            "text",
+            "callback_data",
+            "url",
+            "login_url",
+            "switch_inline_query",
+            "switch_inline_query_current_chat",
+            "pay",
+        ],
+    }
 
-    @staticmethod
-    def create_kb(
+    @classmethod
+    def create_default_kb(
+        cls,
         actions: List[Union[str, Dict[str, Union[str, bool]]]],
         schema: List[int],
     ) -> ReplyKeyboardMarkup:
         kb = ReplyKeyboardMarkup()
         kb.row_width = max(schema)
         buttons = []
-        # noinspection DuplicatedCode
         for a in actions:
             if isinstance(a, str):
                 a = {"text": a}
             data: Dict[str, Union[str, bool]] = {}
-            for k, v in DefaultConstructor.aliases.items():
+            for k, v in cls.aliases.items():
                 if k in a:
                     a[v] = a[k]
                     del a[k]
             for k in a:
-                if k in DefaultConstructor.available_properities:
+                if k in cls.available_properities["default"]:
                     data[k] = a[k]
                 else:
                     break
@@ -58,22 +59,9 @@ class DefaultConstructor:
         kb.resize_keyboard = True
         return kb
 
-
-class InlineConstructor:
-    aliases = {"cb": "callback_data"}
-    available_properities = [
-        "text",
-        "callback_data",
-        "url",
-        "login_url",
-        "switch_inline_query",
-        "switch_inline_query_current_chat",
-        "callback_game",
-        "pay",
-    ]
-
-    @staticmethod
-    def create_kb(
+    @classmethod
+    def create_inline_kb(
+        cls,
         actions: List[
             Dict[
                 str,
@@ -81,8 +69,6 @@ class InlineConstructor:
                     str,
                     bool,
                     Tuple[Dict[str, str], CallbackData],
-                    LoginUrl,
-                    CallbackGame,
                 ],
             ]
         ],
@@ -91,7 +77,6 @@ class InlineConstructor:
         kb = InlineKeyboardMarkup()
         kb.row_width = max(schema)
         buttons = []
-        # noinspection DuplicatedCode
         for a in actions:
             data: Dict[
                 str,
@@ -99,16 +84,14 @@ class InlineConstructor:
                     str,
                     bool,
                     Tuple[Dict[str, str], CallbackData],
-                    LoginUrl,
-                    CallbackGame,
                 ],
             ] = {}
-            for k, v in InlineConstructor.aliases.items():
+            for k, v in cls.aliases.items():
                 if k in a:
                     a[v] = a[k]
                     del a[k]
             for k in a:
-                if k in InlineConstructor.available_properities:
+                if k in cls.available_properities["inline"]:
                     data[k] = a[k]
                 else:
                     break
