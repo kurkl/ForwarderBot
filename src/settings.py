@@ -27,3 +27,4 @@ POSTGRES_URI = (
 REDIS_HOST = env.str("REDIS_HOST", "localhost")
 REDIS_PORT = env.int("REDIS_PORT", 6379)
 REDIS_DB_FSM = env.int("REDIS_DB_FSM", 0)
+REDIS_PASSWORD = env.str("REDIS_PASSWORD")
