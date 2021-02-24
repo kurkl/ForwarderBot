@@ -1,7 +1,13 @@
+import os
+import pathlib
+
 from environs import Env
+from alembic.config import Config
 
 env = Env()
 env.read_env()
+
+PROJECT_PATH = pathlib.Path(__file__).parent.parent.resolve()
 
 DEBUG = True
 # vk settings
@@ -28,3 +34,20 @@ REDIS_HOST = env.str("REDIS_HOST", "localhost")
 REDIS_PORT = env.int("REDIS_PORT", 6379)
 REDIS_DB_FSM = env.int("REDIS_DB_FSM", 0)
 REDIS_PASSWORD = env.str("REDIS_PASSWORD")
+
+
+def make_alembic_config(cmd_opts, base_path: str = PROJECT_PATH) -> Config:
+    # Replace path to alembic.ini file to absolute
+    if not os.path.isabs(cmd_opts.config):
+        cmd_opts.config = os.path.join(base_path, cmd_opts.config)
+
+    config = Config(file_=cmd_opts.config, ini_section=cmd_opts.name, cmd_opts=cmd_opts)
+
+    # Replace path to alembic folder to absolute
+    alembic_location = config.get_main_option("script_location")
+    if not os.path.isabs(alembic_location):
+        config.set_main_option("script_location", os.path.join(base_path, alembic_location))
+    if cmd_opts.pg_url:
+        config.set_main_option("sqlalchemy.url", cmd_opts.pg_url)
+
+    return config
