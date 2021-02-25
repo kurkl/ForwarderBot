@@ -52,9 +52,19 @@ class ForwarderTargetUpdate(ForwarderTargetBase):
     pass
 
 
-class WallSourceCreate(BaseModel):
+class WallSourceBase(BaseModel):
+    forwarder_target_id: int
+
+
+class WallSourceCreate(WallSourceBase):
     source_id: int
     type: str
-    sleep: int = 30
-    admin_access: bool = False
-    forwarder_target_id: int
+    sleep: Optional[int] = 30
+    admin_access: Optional[bool] = False
+
+
+class WallSourceUpdate(WallSourceBase):
+    source_id: int
+    type: str
+    sleep: int
+    admin_access: Optional[bool]

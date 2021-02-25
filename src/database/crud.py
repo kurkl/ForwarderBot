@@ -6,6 +6,7 @@ from .schemas import (
     SubscriberCreate,
     SubscriberUpdate,
     WallSourceCreate,
+    WallSourceUpdate,
     ForwarderTargetCreate,
 )
 from .entities import User, Target, Subscriber, ForwarderTarget
@@ -53,7 +54,7 @@ class CRUDUser(CRUDBase):
             "is_active": values.is_active,
             "is_superuser": values.is_superuser,
         }
-        await User.update(**obj)
+        await User.update(**obj).apply()
 
     async def remove(self, _id: User.telegram_id):
         await User.delete.where(User.telegram_id == _id).gino.status()
@@ -77,7 +78,7 @@ class CRUDSubscriber(CRUDBase):
             "expiration_dt": values.expiration_dt,
             "user_id": values.subscriber_id,
         }
-        await Subscriber.update(**obj)
+        await Subscriber.update(**obj).apply()
 
     async def get_multi_by_level(self, level: int, limit: int = 100) -> List[Subscriber]:
         """
@@ -112,7 +113,16 @@ class CRUDForwarderTargets(CRUDBase):
     async def get_sources_data(self, _id: ForwarderTarget.id) -> List[Target]:
         return await Target.query.where(Target.forwarder_target_id == _id).gino.all()
 
-    async def update_sources_data(self):
+    async def update_sources_data(self, values: WallSourceUpdate):
+        obj = {
+            "source_id": values.source_id,
+            "type": values.type,
+            "sleep": values.sleep,
+            "forwarder_target_id": values.forwarder_target_id,
+        }
+        return await Target.update(**obj).apply()
+
+    async def clear_sources_data(self):
         pass
 
 
