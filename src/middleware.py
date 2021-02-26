@@ -3,19 +3,24 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from src.database.crud import customer
-from src.database.schemas import UserCreate
+from src.database import crud, schemas
 
 
 class ACLMiddleware(BaseMiddleware):
-    async def setup_chat(self, data: dict, user: types.User):
-        user_id = user.id
+    async def setup_chat(self, data: dict, tg_user: types.User):
+        user_id = tg_user.id
 
-        user = await customer.get(user_id)
+        user = await crud.user.get(user_id)
         if not user:
-            user = await customer.create(UserCreate(telegram_id=user_id))
+            user = await crud.user.create(schemas.UserCreate(telegram_id=user_id))
 
-        data["user"] = user
+        subscriber = await crud.subscriber.get(user.id)
+
+        if not subscriber:
+            subscriber = await crud.subscriber.create(schemas.SubscriberCreate(subscriber_id=user.id))
+            await crud.forwarder.create(schemas.ForwarderTargetCreate(subscriber_id=subscriber.id))
+
+        data["user"], data["subscriber"] = user, subscriber
 
     async def on_pre_process_message(self, message: types.Message, data: dict):
         await self.setup_chat(data, message.from_user)

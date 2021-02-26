@@ -1,5 +1,7 @@
 from typing import Any, List
 
+from loguru import logger
+
 from .schemas import (
     UserCreate,
     UserUpdate,
@@ -40,13 +42,13 @@ class CRUDUser(CRUDBase):
     async def get(self, _id: User.telegram_id) -> User:
         return await User.query.where(User.telegram_id == _id).gino.first()
 
-    async def create(self, values: UserCreate):
+    async def create(self, values: UserCreate) -> User:
         obj = {
             "telegram_id": values.telegram_id,
             "is_active": values.is_active,
             "is_superuser": values.is_superuser,
         }
-        await User.create(**obj)
+        return await User.create(**obj)
 
     async def update(self, values: UserUpdate):
         obj = {
@@ -64,13 +66,13 @@ class CRUDSubscriber(CRUDBase):
     async def get(self, _id: User.id) -> Subscriber:
         return await Subscriber.query.where(Subscriber.user_id == _id).gino.first()
 
-    async def create(self, values: SubscriberCreate):
+    async def create(self, values: SubscriberCreate) -> Subscriber:
         obj = {
             "level": values.level,
             "expiration_dt": values.expiration_dt,
             "user_id": values.subscriber_id,
         }
-        await Subscriber.create(**obj)
+        return await Subscriber.create(**obj)
 
     async def update(self, values: SubscriberUpdate):
         obj = {
@@ -91,7 +93,7 @@ class CRUDSubscriber(CRUDBase):
 
 
 class CRUDForwarderTargets(CRUDBase):
-    async def get(self, _id: Subscriber.id):
+    async def get(self, _id: Subscriber.id) -> ForwarderTarget:
         return await ForwarderTarget.query.where(ForwarderTarget.subscriber_id == _id).gino.first()
 
     async def create(self, values: ForwarderTargetCreate):
@@ -101,17 +103,23 @@ class CRUDForwarderTargets(CRUDBase):
     async def remove(self, _id: Subscriber.id):
         await ForwarderTarget.delete.where(ForwarderTarget.id == _id).gino.status()
 
-    async def add_source_id(self, values: WallSourceCreate):
+    async def add_source(self, values: WallSourceCreate):
         obj = {
             "source_id": values.source_id,
             "type": values.type,
             "sleep": values.sleep,
+            "telegram_target_id": values.telegram_target_id,
             "forwarder_target_id": values.forwarder_target_id,
         }
         await Target.create(**obj)
 
     async def get_sources_data(self, _id: ForwarderTarget.id) -> List[Target]:
         return await Target.query.where(Target.forwarder_target_id == _id).gino.all()
+
+    async def get_source_data(self, source_id: Target.source_id, _id: ForwarderTarget.id) -> Target:
+        return await Target.query.where(
+            Target.source_id == source_id and Target.forwarder_target_id == _id
+        ).gino.first()
 
     async def update_sources_data(self, values: WallSourceUpdate):
         obj = {
@@ -122,10 +130,16 @@ class CRUDForwarderTargets(CRUDBase):
         }
         return await Target.update(**obj).apply()
 
-    async def clear_sources_data(self):
-        pass
+    async def remove_source_data(self, _id: ForwarderTarget.id, source_id: int):
+        source = await Target.query.where(
+            Target.forwarder_target_id == _id and Target.source_id == source_id
+        ).gino.first()
+        if source:
+            await source.delete()
+        else:
+            logger.warning(f"Value {source_id} does not exist")
 
 
-forwarder_data = CRUDForwarderTargets(ForwarderTarget)
-customer = CRUDUser(User)
+forwarder = CRUDForwarderTargets(ForwarderTarget)
+user = CRUDUser(User)
 subscriber = CRUDSubscriber(Subscriber)

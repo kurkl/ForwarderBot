@@ -69,6 +69,7 @@ class Target(db.Model):
     __tablename__ = "targets"
 
     source_id = Column(BigInteger, primary_key=True)
+    telegram_target_id = Column(BigInteger)
     type = Column(String)
     sleep = Column(SmallInteger, default=30, nullable=False)
     admin_access = Column(Boolean, server_default=expression.false(), nullable=False)

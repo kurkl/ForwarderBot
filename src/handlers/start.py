@@ -13,7 +13,6 @@ async def cmd_start(message: Message):
         f"Привет {hbold(message.from_user.full_name)}.\n"
         f"Чтобы начать, используй: /service\nПомощь: /help\n"
     )
-    # await user.update(is_active=True).apply()
 
 
 @dp.message_handler(CommandHelp())

@@ -16,5 +16,3 @@ markup = Constructor.create_default_kb(
 @dp.message_handler(chat_type=ChatType.PRIVATE, commands=["admin"], is_superuser=True)
 async def admin_settings_handler(message: Message):
     await message.answer(f"Текущий админ: {message.from_user.username}", reply_markup=markup)
-
-

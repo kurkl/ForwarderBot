@@ -60,6 +60,7 @@ class WallSourceCreate(WallSourceBase):
     source_id: int
     type: str
     sleep: Optional[int] = 30
+    telegram_target_id: int
     admin_access: Optional[bool] = False
 
 
