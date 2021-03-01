@@ -1,7 +1,7 @@
 # ForwarderBot
-[![CircleCI>](https://circleci.com/gh/LehaDurotar/ForwarderTestBot.svg?style=shield)](https://app.circleci.com/pipelines/github/LehaDurotar/ForwarderTestBot)
+[![CircleCI>](https://circleci.com/gh/LehaDurotar/ForwarderBot.svg?style=shield)](https://app.circleci.com/pipelines/github/LehaDurotar/ForwarderBot)
 
-Этот бот предназначен для автоматизации репостов контента со стен ВКонтакте и рассылок в Telegram каналы. 
+Этот бот предназначен для автоматизации репостов контента со стен ВКонтакте/Twitter и рассылок в Telegram каналы. 
 # Фичи:
   - Поддерживает парсинг до 5 источников на одного пользователя, в планах расширение (зависит от ограничений Api ВКонтакте) 
   - Для каждого источника можно задать свое расписание, есть (будет) возможность парсить посты по ключевым словам/тегам 
@@ -13,4 +13,5 @@
   - Интеграция других сервисов, Instagram, Twitter, etc
   - Придумайте что-то свое
 # Examples
-soon
+https://telegram.me/net_forwarder_bot
+Доступно в тестовом режиме
