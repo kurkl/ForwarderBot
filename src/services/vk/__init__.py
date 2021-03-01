@@ -1,1 +1,1 @@
-from .broadcaster import get_vk_broadcaster
+from .public import vk_scheduler
