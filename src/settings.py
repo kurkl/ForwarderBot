@@ -8,18 +8,16 @@ env = Env()
 env.read_env()
 
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.resolve()
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
-DEBUG = True
+DOMAIN = env.str("DOMAIN")
+BOT_PUBLIC_PORT = env.int("BOT_PUBLIC_PORT", 8080)
 # vk settings
 VK_TOKEN = env.str("VK_TOKEN")
-VK_WALL_ID = env.int("VK_WALL_ID")
 # telegram settings
-TARGET_CHANNEL = env.int("TARGET_CHANNEL")
-TEST_CHANNEL = env.int("TEST_CHANNEL", 0)
-CHAT_GROUP = env.int("CHAT_GROUP", 0)
 TG_BOT_TOKEN = env.str("TG_BOT_TOKEN")
-TG_ME = env.int("TG_ME")
-LOG_CHANNEL = env.int("LOG_CHANNEL", TG_ME)
+WEBHOOK_PATH = env.str("WEBHOOK_BASE_PATH", "/webhook")
+WEBHOOK_URL = f"{DOMAIN}{WEBHOOK_PATH}"
 # postgres settings
 POSTGRES_HOST = env.str("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = env.int("POSTGRES_PORT", 5432)
@@ -33,7 +31,10 @@ POSTGRES_URI = (
 REDIS_HOST = env.str("REDIS_HOST", "localhost")
 REDIS_PORT = env.int("REDIS_PORT", 6379)
 REDIS_DB_FSM = env.int("REDIS_DB_FSM", 0)
-REDIS_PASSWORD = env.str("REDIS_PASSWORD")
+REDIS_DB_JOBS = env.int("REDIS_DB_JOBS", 1)
+REDIS_DB_CACHE = env.int("REDIS_DB_CACHE", 2)
+REDIS_PASSWORD = env.str("REDIS_PASSWORD", "")
+REDIS_URI = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
 
 def make_alembic_config(cmd_opts, base_path: str = PROJECT_PATH) -> Config:
