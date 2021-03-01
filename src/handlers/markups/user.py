@@ -2,40 +2,59 @@ from aiogram.utils.callback_data import CallbackData
 
 from src.utils.keyboards import Constructor
 
-user_cb = CallbackData("state", "action")
+actions_cb = CallbackData("user", "action")
 vk_wall_cb = CallbackData("state", "time")
+vk_wall_manage_cb = CallbackData("wall", "id", "action")
 
-main_user_menu = Constructor.create_inline_kb(
+
+def get_wall_manage_kb(_id: int):
+    return Constructor.create_inline_kb(
+        [
+            {"text": "Старт", "cb": ({"id": _id, "action": "wall_start"}, vk_wall_manage_cb)},
+            {"text": "Пауза", "cb": ({"id": _id, "action": "wall_pause"}, vk_wall_manage_cb)},
+            {"text": "Продолжить", "cb": ({"id": _id, "action": "wall_resume"}, vk_wall_manage_cb)},
+            {"text": "Удалить", "cb": ({"id": _id, "action": "wall_remove"}, vk_wall_manage_cb)},
+            {"text": "Назад", "cb": ({"action": "vk_view"}, actions_cb)},
+            {"text": "В главное меню", "cb": ({"action": "vk_main"}, actions_cb)},
+        ],
+        [3, 1, 2],
+    )
+
+
+back_to_vk_main_menu_kb = Constructor.create_inline_kb(
+    [{"text": "Назад", "cb": ({"action": "vk_main"}, actions_cb)}], [1]
+)
+
+main_menu_kb = Constructor.create_inline_kb(
     [
-        {"text": "Вконтакте", "cb": ({"action": "main_vk"}, user_cb)},
-        {"text": "Twitter", "cb": ({"action": "main_twitter"}, user_cb)},
+        {"text": "Вконтакте", "cb": ({"action": "vk_main"}, actions_cb)},
+        {"text": "Twitter", "cb": ({"action": "twitter_main"}, actions_cb)},
     ],
     [2],
 )
-main_user_vk_menu = Constructor.create_inline_kb(
+vk_main_menu_kb = Constructor.create_inline_kb(
     [
-        {"text": "Задать стены", "cb": ({"action": "add_vk"}, user_cb)},
-        {"text": "Список стен", "cb": ({"action": "view_vk"}, user_cb)},
-        {"text": "Начать репосты", "cb": ({"action": "start_vk"}, user_cb)},
-        {"text": "Пауза", "cb": ({"action": "stop_vk"}, user_cb)},
-        {"text": "Статус", "cb": ({"action": "status_vk"}, user_cb)},
-        {"text": "Назад", "cb": ({"action": "main"}, user_cb)},
+        {"text": "Задать стены", "cb": ({"action": "vk_add"}, actions_cb)},
+        {"text": "Список стен", "cb": ({"action": "vk_view"}, actions_cb)},
+        {"text": "Статус", "cb": ({"action": "vk_status"}, actions_cb)},
+        {"text": "Назад", "cb": ({"action": "main"}, actions_cb)},
     ],
-    [2, 1, 2, 1],
+    [2, 1, 1],
 )
-user_add_vk_walls = Constructor.create_inline_kb(
+vk_walls_timeouts_kb = Constructor.create_inline_kb(
     [
-        {"text": "30 мин", "cb": ({"time": "add_vk_30"}, vk_wall_cb)},
-        {"text": "1 час", "cb": ({"time": "add_vk_60"}, vk_wall_cb)},
-        {"text": "2 часа", "cb": ({"time": "add_vk_120"}, vk_wall_cb)},
-        {"text": "Custom", "cb": ({"time": "add_vk_c"}, vk_wall_cb)},
-        {"text": "Назад", "cb": ({"action": "main_vk"}, user_cb)},
+        {"text": "30 мин", "cb": ({"time": 30}, vk_wall_cb)},
+        {"text": "1 час", "cb": ({"time": 60}, vk_wall_cb)},
+        {"text": "2 часа", "cb": ({"time": 120}, vk_wall_cb)},
+        # {"text": "Custom", "cb": ({"time": "add_vk_c"}, vk_wall_cb)},
+        {"text": "Назад", "cb": ({"action": "vk_main"}, actions_cb)},
     ],
-    [3, 1, 1],
+    [3, 1],
 )
-main_user_twitter_menu = Constructor.create_inline_kb(
+
+twitter_main_menu_kb = Constructor.create_inline_kb(
     [
-        {"text": "Назад", "cb": ({"action": "main"}, user_cb)},
+        {"text": "Назад", "cb": ({"action": "main"}, actions_cb)},
     ],
     [1],
 )
