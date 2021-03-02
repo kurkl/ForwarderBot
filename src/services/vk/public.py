@@ -51,7 +51,7 @@ class TelegramSender:
             for photo in media["photos"]:
                 result.append(InputMediaPhoto(photo))
             if caption:
-                result[0] = InputMediaPhoto(media["photo"][0], caption)
+                result[0] = InputMediaPhoto(media["photos"][0], caption)
 
         return result
 
