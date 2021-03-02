@@ -5,6 +5,7 @@ from src.utils.keyboards import Constructor
 actions_cb = CallbackData("user", "action")
 vk_wall_cb = CallbackData("state", "time")
 vk_wall_manage_cb = CallbackData("wall", "id", "action")
+vk_fetch_count_cb = CallbackData("state", "count")
 
 
 def get_wall_manage_kb(_id: int):
@@ -18,6 +19,24 @@ def get_wall_manage_kb(_id: int):
             {"text": "В главное меню", "cb": ({"action": "vk_main"}, actions_cb)},
         ],
         [3, 1, 2],
+    )
+
+
+def get_wall_fetch_count_kb(sub_level: int):
+    """
+    FIXME:
+    :param sub_level:
+    :return:
+    """
+    return Constructor.create_inline_kb(
+        [
+            {"text": "5", "cb": ({"count": 5}, vk_fetch_count_cb)},
+            # {"text": "10", "cb": ({"count": 10}, vk_fetch_count_cb)},
+            # {"text": "15", "cb": ({"count": 15}, vk_fetch_count_cb)},
+            {"text": "Default", "cb": ({"count": 2}, vk_fetch_count_cb)},
+            {"text": "Назад", "cb": ({"action": "vk_main"}, actions_cb)},
+        ],
+        [1, 1, 1],
     )
 
 

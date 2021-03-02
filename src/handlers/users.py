@@ -9,15 +9,17 @@ from src.database.entities import Subscriber
 from src.services.vk.public import vk_scheduler, vk_scheduler_cb
 
 from .markups.user import (
-    main_menu_kb,
     actions_cb,
     vk_wall_cb,
+    main_menu_kb,
     vk_main_menu_kb,
-    twitter_main_menu_kb,
+    vk_fetch_count_cb,
     vk_wall_manage_cb,
-    vk_walls_timeouts_kb,
     get_wall_manage_kb,
+    twitter_main_menu_kb,
+    vk_walls_timeouts_kb,
     back_to_vk_main_menu_kb,
+    get_wall_fetch_count_kb,
 )
 
 
@@ -111,14 +113,27 @@ async def fsm_user_error_tg_id_input(message: Message):
 async def fsm_user_add_telegram_id(message: Message, state: FSMContext):
     await UserVkData.next()
     await state.update_data({"tg_id": int(message.text)})
-    await message.answer("Выберите период опроса источника", reply_markup=vk_walls_timeouts_kb)
+    await message.answer("Выберите период опроса стены", reply_markup=vk_walls_timeouts_kb)
 
 
 @dp.callback_query_handler(vk_wall_cb.filter(), state=UserVkData.set_sleep)
 async def fsm_user_set_vk_sleep(
     query: CallbackQuery, callback_data: dict, subscriber: Subscriber, state: FSMContext
 ):
+    await UserVkData.next()
     await state.update_data({"sleep": callback_data["time"]})
+    await query.message.edit_text(
+        "Выберите количество постов которое, нужно получить со стены\n"
+        f"Для вашего уровня подписки '{subscriber.level}' доступны следующие варианты\n"
+        f"Default - 1 пост в заданный таймаут",
+        reply_markup=get_wall_fetch_count_kb(subscriber.level),
+    )
+
+
+@dp.callback_query_handler(vk_fetch_count_cb.filter(), state=UserVkData.set_fetch_count)
+async def fsm_user_set_fetch_count(
+    query: CallbackQuery, callback_data: dict, subscriber: Subscriber, state: FSMContext
+):
     fsm_store = await state.get_data()
     await crud.forwarder.add_source(
         schemas.WallSourceCreate(
@@ -127,6 +142,7 @@ async def fsm_user_set_vk_sleep(
             type="vkontakte",
             telegram_target_id=fsm_store["tg_id"],
             sleep=fsm_store["sleep"],
+            fetch_count=callback_data["count"],
         )
     )
     await state.finish()
@@ -147,11 +163,13 @@ async def cq_user_manage_vk_wall(query: CallbackQuery, subscriber: Subscriber, c
         )
 
     if action == "wall_start":
-        vk_scheduler.add_job(query.from_user.id, wall_id, full_info.telegram_target_id, full_info.sleep)
+        vk_scheduler.add_job(
+            query.from_user.id, wall_id, full_info.telegram_target_id, full_info.sleep, full_info.fetch_count
+        )
         await query.answer("Запущено")
 
     if action == "wall_remove":
-        await crud.forwarder.remove_source_data(subscriber.id, wall_id)
+        await crud.forwarder.remove_source_data(wall_id, subscriber.id)
         await vk_scheduler.remove_job(query.from_user.id, wall_id, full_info.telegram_target_id)
         await query.answer("Удалено", show_alert=True)
 
