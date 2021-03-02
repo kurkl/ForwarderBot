@@ -110,6 +110,7 @@ class CRUDForwarderTargets(CRUDBase):
             "sleep": values.sleep,
             "telegram_target_id": values.telegram_target_id,
             "forwarder_target_id": values.forwarder_target_id,
+            "fetch_count": values.fetch_count,
         }
         await Target.create(**obj)
 
@@ -127,10 +128,11 @@ class CRUDForwarderTargets(CRUDBase):
             "type": values.type,
             "sleep": values.sleep,
             "forwarder_target_id": values.forwarder_target_id,
+            "fetch_count": values.fetch_count,
         }
         return await Target.update(**obj).apply()
 
-    async def remove_source_data(self, _id: ForwarderTarget.id, source_id: int):
+    async def remove_source_data(self, source_id: int, _id: ForwarderTarget.id):
         source = await Target.query.where(
             Target.forwarder_target_id == _id and Target.source_id == source_id
         ).gino.first()

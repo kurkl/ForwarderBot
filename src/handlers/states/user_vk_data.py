@@ -16,6 +16,7 @@ class UserVkData(StatesGroup):
     set_wall_id = State()
     set_telegram_id = State()
     set_sleep = State()
+    set_fetch_count = State()
 
     # TODO check if values exists
 

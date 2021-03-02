@@ -3,6 +3,8 @@ from sqlalchemy import Column, String, Boolean, Integer, DateTime, BigInteger, F
 from sqlalchemy.sql import expression
 from sqlalchemy.dialects.postgresql import JSONB
 
+from src.settings import TIME_FORMAT
+
 db = Gino()
 
 
@@ -23,7 +25,7 @@ class User(db.Model):
     def __repr__(self):
         return (
             f"<User (telegram_id={self.telegram_id}, is_active={self.is_active}, "
-            f"updated_dt={self.updated_dt.strftime('%Y-%m-%d %H:%M:%S')})> "
+            f"updated_dt={self.updated_dt.strftime(TIME_FORMAT)})> "
         )
 
 
@@ -42,7 +44,7 @@ class Subscriber(db.Model):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
 
     def __repr__(self):
-        return f"<Subscriber (level={self.level}, expiration_dt={self.expiration_dt.strftime('%Y-%m-%d %H:%M:%S')})> "
+        return f"<Subscriber (level={self.level}, expiration_dt={self.expiration_dt.strftime(TIME_FORMAT)})> "
 
 
 class ForwarderTarget(db.Model):
@@ -73,6 +75,7 @@ class Target(db.Model):
     type = Column(String)
     sleep = Column(SmallInteger, default=30, nullable=False)
     admin_access = Column(Boolean, server_default=expression.false(), nullable=False)
+    fetch_count = Column(SmallInteger, default=2, nullable=False)
     created_dt = Column(DateTime, server_default=func.now(), nullable=False)
     updated_dt = Column(DateTime, server_default=func.now(), nullable=False)
 
@@ -82,6 +85,6 @@ class Target(db.Model):
 
     def __repr__(self):
         return (
-            f"<Target (source_id={self.source_id}, type={self.type}, "
-            f"sleep={self.admin_access}, updated_dt={self.updated_dt.strftime('%Y-%m-%d %H:%M:%S')})> "
+            f"<Target (source_id={self.source_id}, type={self.type}, fetch_count={self.fetch_count}"
+            f"sleep={self.admin_access}, updated_dt={self.updated_dt.strftime(TIME_FORMAT)})> "
         )

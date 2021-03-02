@@ -62,6 +62,7 @@ class WallSourceCreate(WallSourceBase):
     sleep: Optional[int] = 30
     telegram_target_id: int
     admin_access: Optional[bool] = False
+    fetch_count: int
 
 
 class WallSourceUpdate(WallSourceBase):
@@ -69,3 +70,4 @@ class WallSourceUpdate(WallSourceBase):
     type: str
     sleep: int
     admin_access: Optional[bool]
+    fetch_count: int

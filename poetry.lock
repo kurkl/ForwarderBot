@@ -215,7 +215,7 @@ python-versions = "*"
 name = "click"
 version = "7.1.2"
 description = "Composable command line interface toolkit"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -501,7 +501,7 @@ python-versions = "*"
 
 [[package]]
 name = "python-socks"
-version = "1.2.1"
+version = "1.2.2"
 description = "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python"
 category = "main"
 optional = false
@@ -693,7 +693,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3e1cb967c83d43fbb470bbc258d870abee043f03ce400761b7b66d33aa86a7f3"
+content-hash = "9c07a81b5c241a8365d2a82d08aaf90907e3a2747fd6a7967f1daad916a7e40b"
 
 [metadata.files]
 aiogram = [
@@ -1105,8 +1105,8 @@ python-editor = [
     {file = "python_editor-1.0.4-py3.5.egg", hash = "sha256:c3da2053dbab6b29c94e43c486ff67206eafbe7eb52dbec7390b5e2fb05aac77"},
 ]
 python-socks = [
-    {file = "python-socks-1.2.1.tar.gz", hash = "sha256:9e6f4d397488edb29594c31a9e28810956728737b57cf88b2db7b79655dea7e9"},
-    {file = "python_socks-1.2.1-py3-none-any.whl", hash = "sha256:6ba69736083f060af25b2774b65135eb48646582c3438d0dba11b43218a5fc84"},
+    {file = "python-socks-1.2.2.tar.gz", hash = "sha256:d76065797250edc4b773c205cfa3c4834301fdb27a650478d1d7396cafc533fa"},
+    {file = "python_socks-1.2.2-py3-none-any.whl", hash = "sha256:41100508d6a3723c2e9884d3330d8bd022a7ef0a953e826637833bf882550fc7"},
 ]
 pytz = [
     {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
