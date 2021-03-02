@@ -5,9 +5,9 @@ from aiogram.types import Message
 from aiogram.utils.markdown import hbold, hlink
 from aiogram.dispatcher.filters import Command, CommandHelp, CommandStart
 
-from settings import TIME_FORMAT
 from src.runner import dp
-from database.entities import Subscriber
+from src.settings import TIME_FORMAT
+from src.database.entities import Subscriber
 
 from .markups.user import main_menu_kb
 

@@ -3,11 +3,11 @@ from aiogram.dispatcher import FSMContext
 
 from src.runner import dp
 from src.database import crud, schemas
-from handlers.states import UserVkData
 from src.utils.keyboards import Constructor
 from src.database.entities import Subscriber
 from src.services.vk.public import vk_scheduler, vk_scheduler_cb
 
+from .states import UserVkData
 from .markups.user import (
     actions_cb,
     vk_wall_cb,
