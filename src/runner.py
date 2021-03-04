@@ -42,6 +42,5 @@ def run_bot():
     # noinspection PyUnresolvedReferences
     import src.handlers
 
-    # runner.on_startup(on_startup_webhook, webhook=True, polling=False)
-    # runner.start_webhook(host="localhost", port=BOT_PUBLIC_PORT)
-    runner.start_polling()
+    runner.on_startup(on_startup_webhook, webhook=True, polling=False)
+    runner.start_webhook(webhook_path=WEBHOOK_PATH, port=BOT_PUBLIC_PORT)
