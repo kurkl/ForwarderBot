@@ -18,7 +18,11 @@ class ACLMiddleware(BaseMiddleware):
 
         if not subscriber:
             subscriber = await crud.subscriber.create(schemas.SubscriberCreate(subscriber_id=user.id))
-            await crud.forwarder.create(schemas.ForwarderTargetCreate(subscriber_id=subscriber.id))
+
+        targets = await crud.target.get(subscriber.id)
+
+        if not targets:
+            await crud.target.create(schemas.TargetCreate(subscriber_id=subscriber.id))
 
         data["user"], data["subscriber"] = user, subscriber
 

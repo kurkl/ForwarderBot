@@ -1,7 +1,6 @@
 from gino import Gino
 from sqlalchemy import Column, String, Boolean, Integer, DateTime, BigInteger, ForeignKey, SmallInteger, func
 from sqlalchemy.sql import expression
-from sqlalchemy.dialects.postgresql import JSONB
 
 from src.settings import TIME_FORMAT
 
@@ -47,44 +46,53 @@ class Subscriber(db.Model):
         return f"<Subscriber (level={self.level}, expiration_dt={self.expiration_dt.strftime(TIME_FORMAT)})> "
 
 
-class ForwarderTarget(db.Model):
+class Target(db.Model):
     """
     Store subscriber forwarder services data
     """
 
-    __tablename__ = "forwarder_targets"
+    __tablename__ = "targets"
 
     id = Column(Integer, primary_key=True, unique=True)
     max_count = Column(SmallInteger, default=10, nullable=False)
-    subscriber_walls_data = Column(JSONB, server_default="{}", nullable=False)
     subscriber_id = Column(Integer, ForeignKey("subscribers.id", ondelete="CASCADE", onupdate="CASCADE"))
 
     def __repr__(self):
-        return f"<ForwarderTarget (id={self.id}, max_count={self.max_count})>"
+        return f"<Target (id={self.id}, max_count={self.max_count})>"
 
 
-class Target(db.Model):
+class Forward(db.Model):
     """
     Stores info about the sources
     """
 
-    __tablename__ = "targets"
+    __tablename__ = "forwards"
 
-    source_id = Column(BigInteger, primary_key=True)
-    telegram_target_id = Column(BigInteger)
-    type = Column(String)
+    id = Column(Integer, primary_key=True, unique=True)
+    source_id = Column(BigInteger)
+    source_type = Column(String(10))
+    source_short_name = Column(String(30))
+    to_chat_id = Column(BigInteger)
     sleep = Column(SmallInteger, default=30, nullable=False)
     admin_access = Column(Boolean, server_default=expression.false(), nullable=False)
     fetch_count = Column(SmallInteger, default=2, nullable=False)
     created_dt = Column(DateTime, server_default=func.now(), nullable=False)
     updated_dt = Column(DateTime, server_default=func.now(), nullable=False)
 
-    forwarder_target_id = Column(
-        Integer, ForeignKey("forwarder_targets.id", ondelete="CASCADE", onupdate="CASCADE")
-    )
+    target_id = Column(Integer, ForeignKey("targets.id", ondelete="CASCADE", onupdate="CASCADE"))
 
     def __repr__(self):
         return (
-            f"<Target (source_id={self.source_id}, type={self.type}, fetch_count={self.fetch_count}"
+            f"<Forward (source_id={self.source_id}, type={self.source_type}, fetch_count={self.fetch_count}"
             f"sleep={self.admin_access}, updated_dt={self.updated_dt.strftime(TIME_FORMAT)})> "
         )
+
+
+class Blocklist(db.Model):
+    """"""
+
+    __tablename__ = "blocklist"
+
+    source_id = Column(BigInteger, primary_key=True, unique=True)
+    source_type = Column(String)
+    reason = Column(String)

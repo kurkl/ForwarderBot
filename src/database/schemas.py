@@ -40,34 +40,37 @@ class SubscriberUpdate(SubscriberBase):
     expiration_dt: datetime
 
 
-class ForwarderTargetBase(SubscriberBase):
+class TargetBase(SubscriberBase):
     pass
 
 
-class ForwarderTargetCreate(ForwarderTargetBase):
+class TargetCreate(TargetBase):
     pass
 
 
-class ForwarderTargetUpdate(ForwarderTargetBase):
+class TargetUpdate(TargetBase):
     pass
 
 
-class WallSourceBase(BaseModel):
-    forwarder_target_id: int
+class ForwardBase(BaseModel):
+    target_id: int
 
 
-class WallSourceCreate(WallSourceBase):
+class ForwardCreate(ForwardBase):
     source_id: int
-    type: str
+    source_type: str
+    source_short_name: str
     sleep: Optional[int] = 30
-    telegram_target_id: int
+    to_chat_id: int
     admin_access: Optional[bool] = False
     fetch_count: int
 
 
-class WallSourceUpdate(WallSourceBase):
+class ForwardUpdate(ForwardBase):
     source_id: int
-    type: str
+    source_type: str
+    source_short_name: str
     sleep: int
+    to_chat_id: int
     admin_access: Optional[bool]
     fetch_count: int

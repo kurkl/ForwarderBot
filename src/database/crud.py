@@ -5,13 +5,13 @@ from loguru import logger
 from .schemas import (
     UserCreate,
     UserUpdate,
+    TargetCreate,
+    ForwardCreate,
+    ForwardUpdate,
     SubscriberCreate,
     SubscriberUpdate,
-    WallSourceCreate,
-    WallSourceUpdate,
-    ForwarderTargetCreate,
 )
-from .entities import User, Target, Subscriber, ForwarderTarget
+from .entities import User, Target, Forward, Subscriber
 
 
 class CRUDBase:
@@ -92,49 +92,51 @@ class CRUDSubscriber(CRUDBase):
         return await Subscriber.query.where(Subscriber.level == level).limit(limit).gino.all()
 
 
-class CRUDForwarderTargets(CRUDBase):
-    async def get(self, _id: Subscriber.id) -> ForwarderTarget:
-        return await ForwarderTarget.query.where(ForwarderTarget.subscriber_id == _id).gino.first()
+class CRUDTargets(CRUDBase):
+    async def get(self, _id: Subscriber.id) -> Target:
+        return await Target.query.where(Target.subscriber_id == _id).gino.first()
 
-    async def create(self, values: ForwarderTargetCreate):
-        obj = {"subscriber_id": values.subscriber_id}
-        await ForwarderTarget.create(**obj)
+    async def create(self, values: TargetCreate):
+        await Target.create(subscriber_id=values.subscriber_id)
 
     async def remove(self, _id: Subscriber.id):
-        await ForwarderTarget.delete.where(ForwarderTarget.id == _id).gino.status()
+        await Target.delete.where(Target.id == _id).gino.status()
 
-    async def add_source(self, values: WallSourceCreate):
+    async def add_source(self, values: ForwardCreate):
         obj = {
             "source_id": values.source_id,
-            "type": values.type,
+            "source_type": values.source_type,
+            "source_short_name": values.source_short_name,
             "sleep": values.sleep,
-            "telegram_target_id": values.telegram_target_id,
-            "forwarder_target_id": values.forwarder_target_id,
+            "to_chat_id": values.to_chat_id,
+            "target_id": values.target_id,
             "fetch_count": values.fetch_count,
         }
-        await Target.create(**obj)
+        await Forward.create(**obj)
 
-    async def get_sources_data(self, _id: ForwarderTarget.id) -> List[Target]:
-        return await Target.query.where(Target.forwarder_target_id == _id).gino.all()
+    async def get_sources_data(self, _id: Target.id) -> List[Forward]:
+        return await Forward.query.where(Forward.target_id == _id).gino.all()
 
-    async def get_source_data(self, source_id: Target.source_id, _id: ForwarderTarget.id) -> Target:
-        return await Target.query.where(
-            Target.source_id == source_id and Target.forwarder_target_id == _id
+    async def get_source_data(self, source_id: Forward.source_id, _id: Target.id) -> Forward:
+        return await Forward.query.where(
+            Forward.source_id == source_id and Forward.target_id == _id
         ).gino.first()
 
-    async def update_sources_data(self, values: WallSourceUpdate):
+    async def update_sources_data(self, values: ForwardUpdate):
         obj = {
             "source_id": values.source_id,
-            "type": values.type,
+            "source_type": values.source_type,
+            "source_short_name": values.source_short_name,
             "sleep": values.sleep,
-            "forwarder_target_id": values.forwarder_target_id,
+            "to_chat_id": values.to_chat_id,
+            "target_id": values.target_id,
             "fetch_count": values.fetch_count,
         }
-        return await Target.update(**obj).apply()
+        return await Forward.update(**obj).apply()
 
-    async def remove_source_data(self, source_id: int, _id: ForwarderTarget.id):
-        source = await Target.query.where(
-            Target.forwarder_target_id == _id and Target.source_id == source_id
+    async def remove_source_data(self, source_id: Forward.source_id, _id: Target.id):
+        source = await Forward.query.where(
+            Forward.target_id == _id and Forward.source_id == source_id
         ).gino.first()
         if source:
             await source.delete()
@@ -142,6 +144,6 @@ class CRUDForwarderTargets(CRUDBase):
             logger.warning(f"Value {source_id} does not exist")
 
 
-forwarder = CRUDForwarderTargets(ForwarderTarget)
+target = CRUDTargets(Target)
 user = CRUDUser(User)
 subscriber = CRUDSubscriber(Subscriber)
