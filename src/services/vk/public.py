@@ -39,7 +39,10 @@ class TelegramSender:
     @classmethod
     def prepare_message(cls, msg_data: dict) -> Union[str, List[InputMediaPhoto]]:
         result = []
-        media, caption = msg_data["media"], msg_data["text"]
+        media, caption = msg_data.get("media"), msg_data.get("text")
+
+        if not media:
+            return caption
 
         if not media["photos"] and not media["videos"] and not media["audio"] and not media["polls"]:
             return caption
