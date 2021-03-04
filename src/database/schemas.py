@@ -45,7 +45,7 @@ class TargetBase(SubscriberBase):
 
 
 class TargetCreate(TargetBase):
-    pass
+    max_count: int = 5
 
 
 class TargetUpdate(TargetBase):

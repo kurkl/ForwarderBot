@@ -1,18 +1,12 @@
-from typing import List, Union, Optional
+from typing import Tuple, Union, Optional
 
 from aiovk import API, TokenSession
 from loguru import logger
+from aiogram.utils.exceptions import BotBlocked, ChatNotFound, ChatAdminRequired
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from runner import dp
 from src.settings import VK_TOKEN
-
-
-def check_num(value: str) -> bool:
-    try:
-        int(value)
-        return True
-    except ValueError:
-        return False
 
 
 class UserVkData(StatesGroup):
@@ -22,7 +16,7 @@ class UserVkData(StatesGroup):
     set_fetch_count = State()
 
     @staticmethod
-    async def get_wall_id_from_domain(short_name: str):
+    async def get_wall_id_from_domain(short_name: str) -> Optional[int]:
         try:
             async with TokenSession(VK_TOKEN) as session:
                 api = API(session)
@@ -38,8 +32,22 @@ class UserVkData(StatesGroup):
         return wall_object["object_id"]
 
     @staticmethod
-    def is_telegram_id_valid(raw_data: str) -> bool:
-        if check_num(raw_data) and len(raw_data) >= 6:
-            return True
-        return False
-        # TODO: check access
+    async def get_telegram_id(from_message: Union[str, int]) -> Tuple[int, str]:
+        """
+        Simple check telegram chat entity is valid
+        :param from_message:
+        :return: telegram chat id or str error message
+        """
+        chat_id, error = None, None
+        try:
+            chat_obj = await dp.bot.get_chat(from_message)
+            chat_id = chat_obj.id
+        except (ChatNotFound, ChatAdminRequired):
+            error = "Чат не существует, или бот не является администратором в группе/канале"
+        except BotBlocked:
+            error = f"Бот заблокирован в {from_message} чате"
+        except Exception as err:
+            logger.error(f"User error: {err}")
+            error = "Ошибка на стороне сервера"
+
+        return chat_id, error

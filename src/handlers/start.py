@@ -46,12 +46,9 @@ async def cmd_status(message: Message):
 
 @dp.message_handler(Command("service"))
 async def cmd_user_services(message: Message, subscriber: Subscriber):
-    if subscriber.expiration_dt.date() >= datetime.date(datetime.now()):
-        await message.answer(
-            f"Ваш уровень подписчика: {subscriber.level}\n"
-            f"Активен до: {hbold(subscriber.expiration_dt.date().strftime(TIME_FORMAT))}\n"
-            f"Информация о подписке: /subscribe\nПомощь: /help\nДоступные сервисы",
-            reply_markup=main_menu_kb,
-        )
-    else:
-        await message.answer("Ваша подписка неактивна, сервис недоступен :(")
+    await message.answer(
+        f"Ваш уровень подписчика: {subscriber.level}\n"
+        f"Активен до: {hbold(subscriber.expiration_dt.date().strftime(TIME_FORMAT))}\n"
+        f"Информация о подписке: /subscribe\nПомощь: /help\nДоступные сервисы",
+        reply_markup=main_menu_kb,
+    )

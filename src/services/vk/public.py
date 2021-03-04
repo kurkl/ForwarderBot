@@ -1,6 +1,5 @@
 import json
 import asyncio
-from random import uniform
 from typing import List, Union, Optional
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -20,19 +19,6 @@ from src.runner import bot
 from src.settings import VK_TOKEN, REDIS_URI, REDIS_DB_CACHE
 from src.utils.redis import RedisPool
 from src.utils.scheduler import scheduler
-
-
-async def execute_event(event_data: dict):
-    if event_data["delivery"] == "auto":
-        for msg in event_data["items"]:
-            await asyncio.wait(
-                [
-                    TelegramSender.send(event_data["to_chat_id"], msg),
-                    bot.send_chat_action(event_data["to_chat_id"], "typing"),
-                ]
-            )
-    elif event_data["delivery"] == "timeout":
-        pass
 
 
 class TelegramSender:
@@ -87,6 +73,21 @@ class VkFetch(RedisPool):
         finally:
             await session.close()
 
+    async def execute_event(self, cache_name: str, user_store: str):
+        redis_data = await self.redis.hget(cache_name, user_store, encoding="utf-8")
+        event_data = json.loads(redis_data)
+
+        if event_data["delivery"] == "auto":
+            for msg in event_data["items"]:
+                await asyncio.wait(
+                    [
+                        TelegramSender.send(event_data["to_chat_id"], msg),
+                        bot.send_chat_action(event_data["to_chat_id"], "typing"),
+                    ]
+                )
+        elif event_data["delivery"] == "timeout":
+            pass
+
     @tenacity.retry(wait=tenacity.wait_fixed(2), stop=tenacity.stop_after_attempt(2))
     async def fetch_public_wall(self, user_id: int, wall_id: int, to_chat_id: int, count):
         """
@@ -129,7 +130,7 @@ class VkFetch(RedisPool):
             await self.redis.hset(
                 cache_name, user_store, json.dumps(fetch_result, ensure_ascii=False).encode("utf-8")
             )
-            await execute_event(fetch_result)
+            await self.execute_event(cache_name, user_store)
         else:
             logger.warning(f"wall_id: {wall_id} no new post")
 

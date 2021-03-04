@@ -97,7 +97,8 @@ class CRUDTargets(CRUDBase):
         return await Target.query.where(Target.subscriber_id == _id).gino.first()
 
     async def create(self, values: TargetCreate):
-        await Target.create(subscriber_id=values.subscriber_id)
+        obj = {"subscriber_id": values.subscriber_id, "max_count": values.max_count}
+        await Target.create(**obj)
 
     async def remove(self, _id: Subscriber.id):
         await Target.delete.where(Target.id == _id).gino.status()

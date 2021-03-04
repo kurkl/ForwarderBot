@@ -91,32 +91,32 @@ async def fsm_user_add_vk_wall(message: Message, state: FSMContext):
     wall_id = await UserVkData.get_wall_id_from_domain(message.text)
     if not wall_id:
         return await message.reply(
-            "Ошибочное имя стены или сообщества, попробуй снова.", reply_markup=back_to_vk_main_menu_kb
-        )
-    else:
-        await UserVkData.next()
-        await state.update_data({"wall_short_name": message.text, "wall_id": wall_id})
-        await message.answer(
-            f"Введи {hbold('telegram_id')}\n"
-            "Чтобы узнать свой или id группы, воспользуйся @myidbot @getmyid_bot\n\n"
-            f"{hbold('Для возможности репостов в определенный телеграмм канал/группу')}, "
-            f"{hbold('этот бот должен быть участником нужного чата и иметь в нем права администратора.')}",
+            f"{hbold('Ошибка')}\n\nСтена или сообщество не найдено\n\nПопробуй снова",
             reply_markup=back_to_vk_main_menu_kb,
         )
+    await UserVkData.next()
+    await state.update_data({"wall_short_name": message.text, "wall_id": wall_id})
+    await message.answer(
+        f"Введи {hbold('telegram_id')} или короткое имя аккаунта\n"
+        "Чтобы узнать свой или id группы, воспользуйся @myidbot @getmyid_bot\n\n"
+        f"Для возможности репостов в определенный телеграмм канал/группу, "
+        f"бот должен быть участником нужного чата и иметь в нем {hbold('права администратора')}",
+        reply_markup=back_to_vk_main_menu_kb,
+    )
 
 
 @dp.message_handler(state=UserVkData.set_telegram_id)
-async def fsm_user_add_telegram_id(message: Message, state: FSMContext):
-    if not UserVkData.is_telegram_id_valid(message.text):
+async def fsm_user_set_telegram_id(message: Message, state: FSMContext):
+    chat_id, error = await UserVkData.get_telegram_id(message.text)
+    if error:
         return await message.reply(
-            "Ошибочный telegram_id, попробуй снова", reply_markup=back_to_vk_main_menu_kb
+            f"{hbold('Ошибка')}\n\n{error}\n\nПопробуй снова", reply_markup=back_to_vk_main_menu_kb
         )
-    else:
-        await UserVkData.next()
-        await state.update_data({"tg_id": int(message.text)})
-        await message.answer(
-            "Выбери, с какой периодичностью нужно опрашивать стену.", reply_markup=vk_walls_timeouts_kb
-        )
+    await UserVkData.next()
+    await state.update_data({"tg_id": chat_id})
+    await message.answer(
+        "Выбери, с какой периодичностью нужно опрашивать стену.", reply_markup=vk_walls_timeouts_kb
+    )
 
 
 @dp.callback_query_handler(vk_wall_cb.filter(), state=UserVkData.set_sleep)
