@@ -1,11 +1,12 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.markdown import hbold
 
 from src.runner import dp
 from src.database import crud, schemas
 from src.utils.keyboards import Constructor
 from src.database.entities import Subscriber
-from src.services.vk.public import vk_scheduler, vk_scheduler_cb
+from src.services.vk.public import vk_scheduler
 
 from .states import UserVkData
 from .markups.user import (
@@ -25,7 +26,7 @@ from .markups.user import (
 
 @dp.callback_query_handler(actions_cb.filter(action="main"))
 async def cq_user_main_services(query: CallbackQuery):
-    await query.message.edit_text("Выберите сервис", reply_markup=main_menu_kb)
+    await query.message.edit_text("Выбери сервис", reply_markup=main_menu_kb)
 
 
 @dp.callback_query_handler(actions_cb.filter(action="vk_main"), state="*")
@@ -39,14 +40,15 @@ async def cq_user_vk_main(query: CallbackQuery, state: FSMContext):
 @dp.callback_query_handler(actions_cb.filter(action=["vk_status", "vk_view", "vk_add"]))
 async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callback_data: dict):
     action = callback_data["action"]
-    walls_headers = await crud.forwarder.get(subscriber.id)
-    walls = await crud.forwarder.get_sources_data(subscriber.id)
+    walls_headers = await crud.target.get(subscriber.id)
+    walls = await crud.target.get_sources_data(subscriber.id)
 
     if action == "vk_add":
         if len(walls) != walls_headers.max_count:
             await UserVkData.set_wall_id.set()
             await query.message.edit_text(
-                f"{len(walls)}/{walls_headers.max_count}\nВведите wall_id",
+                f"Доступно {len(walls)}/{walls_headers.max_count} стен\n"
+                f"Введи короткое имя стены, например vk.com/durov -> durov",
                 reply_markup=back_to_vk_main_menu_kb,
             )
         else:
@@ -67,7 +69,7 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
             walls_kb = Constructor.create_inline_kb(
                 [
                     {
-                        "text": wall.source_id,
+                        "text": f"{wall.source_short_name} tg_id: {wall.to_chat_id}",
                         "cb": ({"id": wall.source_id, "action": "wall_view"}, vk_wall_manage_cb),
                     }
                     for wall in walls
@@ -78,42 +80,43 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
         else:
             walls_kb = back_to_vk_main_menu_kb
         await query.message.edit_text(
-            f"Ваши стены\nЗанято {len(walls)} из {walls_headers.max_count} слотов\n"
-            f"Выберите стену для управления её состоянием",
+            f"Ваши стены\nЗанято {len(walls)} из {walls_headers.max_count} слотов.\n"
+            f"Выбери стену для управления её состоянием.",
             reply_markup=walls_kb,
         )
 
 
-@dp.message_handler(
-    lambda message: not UserVkData.is_wall_id_valid(message.text), state=UserVkData.set_wall_id
-)
-async def fsm_user_error_vk_wall_id_input(message: Message):
-    return await message.reply(
-        "Вы ввели ошибочный wall_id, попробуйте снова", reply_markup=back_to_vk_main_menu_kb
-    )
-
-
 @dp.message_handler(state=UserVkData.set_wall_id)
 async def fsm_user_add_vk_wall(message: Message, state: FSMContext):
-    await UserVkData.next()
-    await state.update_data({"wall_id": int(message.text)})
-    await message.answer("Введите telegram_id", reply_markup=back_to_vk_main_menu_kb)
-
-
-@dp.message_handler(
-    lambda message: not UserVkData.is_telegram_id_valid(message.text), state=UserVkData.set_telegram_id
-)
-async def fsm_user_error_tg_id_input(message: Message):
-    return await message.reply(
-        "Вы ввели ошибочный telegram_id, попробуйте снова", reply_markup=back_to_vk_main_menu_kb
-    )
+    wall_id = await UserVkData.get_wall_id_from_domain(message.text)
+    if not wall_id:
+        return await message.reply(
+            "Ошибочное имя стены или сообщества, попробуй снова.", reply_markup=back_to_vk_main_menu_kb
+        )
+    else:
+        await UserVkData.next()
+        await state.update_data({"wall_short_name": message.text, "wall_id": wall_id})
+        await message.answer(
+            f"Введи {hbold('telegram_id')}\n"
+            "Чтобы узнать свой или id группы, воспользуйся @myidbot @getmyid_bot\n\n"
+            f"{hbold('Для возможности репостов в определенный телеграмм канал/группу')}, "
+            f"{hbold('этот бот должен быть участником нужного чата и иметь в нем права администратора.')}",
+            reply_markup=back_to_vk_main_menu_kb,
+        )
 
 
 @dp.message_handler(state=UserVkData.set_telegram_id)
 async def fsm_user_add_telegram_id(message: Message, state: FSMContext):
-    await UserVkData.next()
-    await state.update_data({"tg_id": int(message.text)})
-    await message.answer("Выберите период опроса стены", reply_markup=vk_walls_timeouts_kb)
+    if not UserVkData.is_telegram_id_valid(message.text):
+        return await message.reply(
+            "Ошибочный telegram_id, попробуй снова", reply_markup=back_to_vk_main_menu_kb
+        )
+    else:
+        await UserVkData.next()
+        await state.update_data({"tg_id": int(message.text)})
+        await message.answer(
+            "Выбери, с какой периодичностью нужно опрашивать стену.", reply_markup=vk_walls_timeouts_kb
+        )
 
 
 @dp.callback_query_handler(vk_wall_cb.filter(), state=UserVkData.set_sleep)
@@ -123,9 +126,9 @@ async def fsm_user_set_vk_sleep(
     await UserVkData.next()
     await state.update_data({"sleep": callback_data["time"]})
     await query.message.edit_text(
-        "Выберите количество постов которое, нужно получить со стены\n"
-        f"Для вашего уровня подписки '{subscriber.level}' доступны следующие варианты\n"
-        f"Default - 1 пост в заданный таймаут",
+        "Выбери количество постов, которое нужно получить со стены.\n"
+        f"Для твоего уровня подписки '{subscriber.level}' доступны следующие варианты.\n\n"
+        f"{hbold('Default - последний пост в заданный таймаут.')}",
         reply_markup=get_wall_fetch_count_kb(subscriber.level),
     )
 
@@ -135,73 +138,59 @@ async def fsm_user_set_fetch_count(
     query: CallbackQuery, callback_data: dict, subscriber: Subscriber, state: FSMContext
 ):
     fsm_store = await state.get_data()
-    await crud.forwarder.add_source(
-        schemas.WallSourceCreate(
-            forwarder_target_id=subscriber.id,
+    await crud.target.add_source(
+        schemas.ForwardCreate(
+            target_id=subscriber.id,
             source_id=fsm_store["wall_id"],
-            type="vkontakte",
-            telegram_target_id=fsm_store["tg_id"],
+            source_short_name=fsm_store["wall_short_name"],
+            source_type="vk",
+            to_chat_id=fsm_store["tg_id"],
             sleep=fsm_store["sleep"],
             fetch_count=callback_data["count"],
         )
     )
+    await vk_scheduler.update_delivery_settings(
+        query.from_user.id, fsm_store["wall_id"], fsm_store["tg_id"], "auto"
+    )
     await state.finish()
-    await query.message.edit_text("Успешно!", reply_markup=vk_main_menu_kb)
+    await query.message.edit_text(
+        'Успешно!\nЧтобы начать репосты, откройте список стен, выберите нужную и нажмите "Старт"',
+        reply_markup=vk_main_menu_kb,
+    )
 
 
 @dp.callback_query_handler(vk_wall_manage_cb.filter())
 async def cq_user_manage_vk_wall(query: CallbackQuery, subscriber: Subscriber, callback_data: dict):
     action = callback_data["action"]
     wall_id = int(callback_data["id"])
-    full_info = await crud.forwarder.get_source_data(wall_id, subscriber.id)
+    wall_info = await crud.target.get_source_data(wall_id, subscriber.id)
 
     if action == "wall_view":
         wall_manage_kb = get_wall_manage_kb(wall_id)
         await query.message.edit_text(
-            f"Стена {full_info.source_id}\nвремя опроса: {full_info.sleep}, источник: {full_info.type}",
+            f"Стена: https://vk.com/{wall_info.source_short_name}\nid: {wall_info.source_id}\n"
+            f"репосты в канал: {wall_info.to_chat_id}\nтаймаут: {wall_info.sleep} мин",
             reply_markup=wall_manage_kb,
         )
 
     if action == "wall_start":
         vk_scheduler.add_job(
-            query.from_user.id, wall_id, full_info.telegram_target_id, full_info.sleep, full_info.fetch_count
+            query.from_user.id, wall_id, wall_info.to_chat_id, wall_info.sleep, wall_info.fetch_count
         )
         await query.answer("Запущено")
 
     if action == "wall_remove":
-        await crud.forwarder.remove_source_data(wall_id, subscriber.id)
-        await vk_scheduler.remove_job(query.from_user.id, wall_id, full_info.telegram_target_id)
-        await query.answer("Удалено", show_alert=True)
+        await crud.target.remove_source_data(wall_id, wall_info.target_id)
+        await vk_scheduler.remove_job(query.from_user.id, wall_id, wall_info.to_chat_id)
+        await query.message.edit_text("Удалено", reply_markup=vk_main_menu_kb)
 
     if action == "wall_pause":
-        vk_scheduler.pause_job(query.from_user.id, wall_id, full_info.telegram_target_id)
+        vk_scheduler.pause_job(query.from_user.id, wall_id, wall_info.to_chat_id)
         await query.answer("Остановлено", show_alert=True)
 
     if action == "wall_resume":
-        vk_scheduler.continue_job(query.from_user.id, wall_id, full_info.telegram_target_id)
+        vk_scheduler.continue_job(query.from_user.id, wall_id, wall_info.to_chat_id)
         await query.answer("Восстановлено", show_alert=True)
-
-
-@dp.callback_query_handler(vk_scheduler_cb.filter())
-async def cq_vk_scheduler(query: CallbackQuery, subscriber: Subscriber, callback_data: dict):
-    action = callback_data["action"]
-    wall_id = int(callback_data["id"])
-    full_info = await crud.forwarder.get_source_data(wall_id, subscriber.id)
-    if action == "auto":
-        await vk_scheduler.update_delivery_settings(
-            query.from_user.id, wall_id, full_info.telegram_target_id, "auto"
-        )
-        await query.message.edit_text("Авторепосты включены", reply_markup=back_to_vk_main_menu_kb)
-    if action == "now":
-        await vk_scheduler.update_delivery_settings(
-            query.from_user.id, wall_id, full_info.telegram_target_id, "now"
-        )
-        await query.message.edit_text("Репостим", reply_markup=back_to_vk_main_menu_kb)
-    if action == "timeout":
-        await query.message.edit_text("Таймаут", reply_markup=back_to_vk_main_menu_kb)
-
-    if action == "confirm":
-        await query.message.edit_reply_markup(vk_main_menu_kb)
 
 
 @dp.callback_query_handler(actions_cb.filter(action="twitter_main"))

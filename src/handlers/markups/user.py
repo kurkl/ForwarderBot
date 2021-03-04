@@ -18,7 +18,7 @@ def get_wall_manage_kb(_id: int):
             {"text": "Назад", "cb": ({"action": "vk_view"}, actions_cb)},
             {"text": "В главное меню", "cb": ({"action": "vk_main"}, actions_cb)},
         ],
-        [3, 1, 2],
+        [3, 3],
     )
 
 
@@ -30,10 +30,10 @@ def get_wall_fetch_count_kb(sub_level: int):
     """
     return Constructor.create_inline_kb(
         [
+            {"text": "Default", "cb": ({"count": 2}, vk_fetch_count_cb)},
             {"text": "5", "cb": ({"count": 5}, vk_fetch_count_cb)},
             # {"text": "10", "cb": ({"count": 10}, vk_fetch_count_cb)},
             # {"text": "15", "cb": ({"count": 15}, vk_fetch_count_cb)},
-            {"text": "Default", "cb": ({"count": 2}, vk_fetch_count_cb)},
             {"text": "Назад", "cb": ({"action": "vk_main"}, actions_cb)},
         ],
         [1, 1, 1],
@@ -53,12 +53,12 @@ main_menu_kb = Constructor.create_inline_kb(
 )
 vk_main_menu_kb = Constructor.create_inline_kb(
     [
-        {"text": "Задать стены", "cb": ({"action": "vk_add"}, actions_cb)},
+        {"text": "Добавить стену", "cb": ({"action": "vk_add"}, actions_cb)},
         {"text": "Список стен", "cb": ({"action": "vk_view"}, actions_cb)},
         {"text": "Статус", "cb": ({"action": "vk_status"}, actions_cb)},
         {"text": "Назад", "cb": ({"action": "main"}, actions_cb)},
     ],
-    [2, 1, 1],
+    [2, 2],
 )
 vk_walls_timeouts_kb = Constructor.create_inline_kb(
     [
