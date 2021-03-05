@@ -1,5 +1,4 @@
 import json
-import asyncio
 from typing import List, Union, Optional
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -76,15 +75,9 @@ class VkFetch(RedisPool):
     async def execute_event(self, cache_name: str, user_store: str):
         redis_data = await self.redis.hget(cache_name, user_store, encoding="utf-8")
         event_data = json.loads(redis_data)
-
         if event_data["delivery"] == "auto":
             for msg in event_data["items"]:
-                await asyncio.wait(
-                    [
-                        TelegramSender.send(event_data["to_chat_id"], msg),
-                        bot.send_chat_action(event_data["to_chat_id"], "typing"),
-                    ]
-                )
+                await TelegramSender.send(event_data["to_chat_id"], msg),
         elif event_data["delivery"] == "timeout":
             pass
 
@@ -162,7 +155,7 @@ class VkScheduler(VkFetch):
         if not job:
             scheduler.add_job(
                 self.fetch_public_wall,
-                IntervalTrigger(minutes=timeout),
+                IntervalTrigger(seconds=timeout),
                 args=(
                     user_id,
                     wall_id,
