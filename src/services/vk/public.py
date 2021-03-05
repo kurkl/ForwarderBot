@@ -150,12 +150,13 @@ class VkScheduler(VkFetch):
         redis_data = await self.redis.hget(f"{args[0]}:cache", f"{args[1]}:{args[2]}", encoding="utf-8")
         return json.loads(redis_data) if redis_data else None
 
-    def add_job(self, user_id: int, wall_id: int, to_chat_id: int, timeout: int, fetch_count: int):
+    async def add_job(self, user_id: int, wall_id: int, to_chat_id: int, timeout: int, fetch_count: int):
         job = self._get_job_by_id(user_id, wall_id, to_chat_id)
         if not job:
+            await self.update_delivery_settings(user_id, wall_id, to_chat_id, "auto")
             scheduler.add_job(
                 self.fetch_public_wall,
-                IntervalTrigger(seconds=timeout),
+                IntervalTrigger(minutes=timeout),
                 args=(
                     user_id,
                     wall_id,

@@ -149,9 +149,6 @@ async def fsm_user_set_fetch_count(
             fetch_count=callback_data["count"],
         )
     )
-    await vk_scheduler.update_delivery_settings(
-        query.from_user.id, fsm_store["wall_id"], fsm_store["tg_id"], "auto"
-    )
     await state.finish()
     await query.message.edit_text(
         'Успешно!\nЧтобы начать репосты, откройте список стен, выберите нужную и нажмите "Старт"',
@@ -174,7 +171,7 @@ async def cq_user_manage_vk_wall(query: CallbackQuery, subscriber: Subscriber, c
         )
 
     if action == "wall_start":
-        vk_scheduler.add_job(
+        await vk_scheduler.add_job(
             query.from_user.id, wall_id, wall_info.to_chat_id, wall_info.sleep, wall_info.fetch_count
         )
         await query.answer("Запущено")
