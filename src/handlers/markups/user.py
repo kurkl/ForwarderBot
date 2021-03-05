@@ -14,11 +14,11 @@ def get_wall_manage_kb(_id: int):
             {"text": "Старт", "cb": ({"id": _id, "action": "wall_start"}, vk_wall_manage_cb)},
             {"text": "Пауза", "cb": ({"id": _id, "action": "wall_pause"}, vk_wall_manage_cb)},
             {"text": "Продолжить", "cb": ({"id": _id, "action": "wall_resume"}, vk_wall_manage_cb)},
-            {"text": "Удалить", "cb": ({"id": _id, "action": "wall_remove"}, vk_wall_manage_cb)},
             {"text": "Назад", "cb": ({"action": "vk_view"}, actions_cb)},
             {"text": "В главное меню", "cb": ({"action": "vk_main"}, actions_cb)},
+            {"text": "Удалить", "cb": ({"id": _id, "action": "wall_remove"}, vk_wall_manage_cb)},
         ],
-        [3, 3],
+        [2, 2, 2],
     )
 
 

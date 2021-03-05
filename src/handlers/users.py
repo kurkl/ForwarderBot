@@ -48,7 +48,7 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
             await UserVkData.set_wall_id.set()
             await query.message.edit_text(
                 f"Доступно {len(walls)}/{walls_headers.max_count} стен\n"
-                f"Введи короткое имя стены, например vk.com/durov -> durov",
+                f"Введи короткое имя стены, к примеру, для стены vk.com/durov нужно ввести только durov",
                 reply_markup=back_to_vk_main_menu_kb,
             )
         else:
@@ -97,7 +97,7 @@ async def fsm_user_add_vk_wall(message: Message, state: FSMContext):
     await UserVkData.next()
     await state.update_data({"wall_short_name": message.text, "wall_id": wall_id})
     await message.answer(
-        f"Введи {hbold('telegram_id')} или короткое имя аккаунта\n"
+        f"Введи {hbold('telegram_id')}\n"
         "Чтобы узнать свой или id группы, воспользуйся @myidbot @getmyid_bot\n\n"
         f"Для возможности репостов в определенный телеграмм канал/группу, "
         f"бот должен быть участником нужного чата и иметь в нем {hbold('права администратора')}",
