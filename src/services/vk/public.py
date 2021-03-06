@@ -107,7 +107,7 @@ class VkFetch(RedisPool):
             received_records = await session.wall.get(owner_id=wall_id, count=count, v=5.126)
 
         for record in received_records["items"][1:]:
-            item = {"date": record["date"]}
+            item = {"date": record["date"], "post_id": record["id"]}
             if "text" in record:
                 item.update({"text": record["text"]})
             if "attachments" in record:
@@ -116,7 +116,7 @@ class VkFetch(RedisPool):
                     if attach["type"] == "photo":
                         item["media"]["photos"].append(attach["photo"]["sizes"][-1]["url"])
                     # TODO: get video, polls, voice etc
-            if item not in cache_data["items"]:
+            if item["post_id"] not in [record["post_id"] for record in cache_data["items"]]:
                 fetch_result["items"].append(item)
 
         if fetch_result["items"]:
