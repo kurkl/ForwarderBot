@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class UserBase(BaseModel):
-    is_active: bool = True
+    is_active: Optional[bool] = False
     is_superuser: Optional[bool] = False
 
 
@@ -14,9 +14,9 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    is_active = bool
-    is_superuser = bool
-    telegram_id: int
+    is_active: bool
+    is_superuser: Optional[bool] = False
+    id: int
 
 
 class UserInBD(UserBase):

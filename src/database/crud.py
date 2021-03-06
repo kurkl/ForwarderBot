@@ -52,9 +52,9 @@ class CRUDUser(CRUDBase):
 
     async def update(self, values: UserUpdate):
         obj = {
-            "telegram_id": values.telegram_id,
             "is_active": values.is_active,
             "is_superuser": values.is_superuser,
+            "id": values.id,
         }
         await User.update(**obj).apply()
 
