@@ -39,8 +39,8 @@ class CRUDBase:
 
 
 class CRUDUser(CRUDBase):
-    async def get(self, _id: User.telegram_id) -> User:
-        return await User.query.where(User.telegram_id == _id).gino.first()
+    async def get(self, telegram_id: int) -> User:
+        return await User.query.where(User.telegram_id == telegram_id).gino.first()
 
     async def create(self, values: UserCreate) -> User:
         obj = {
@@ -63,8 +63,8 @@ class CRUDUser(CRUDBase):
 
 
 class CRUDSubscriber(CRUDBase):
-    async def get(self, _id: User.id) -> Subscriber:
-        return await Subscriber.query.where(Subscriber.user_id == _id).gino.first()
+    async def get(self, user_id: int) -> Subscriber:
+        return await Subscriber.query.where(Subscriber.user_id == user_id).gino.first()
 
     async def create(self, values: SubscriberCreate) -> Subscriber:
         obj = {
@@ -93,15 +93,15 @@ class CRUDSubscriber(CRUDBase):
 
 
 class CRUDTargets(CRUDBase):
-    async def get(self, _id: Subscriber.id) -> Target:
-        return await Target.query.where(Target.subscriber_id == _id).gino.first()
+    async def get(self, subscriber_id: int) -> Target:
+        return await Target.query.where(Target.subscriber_id == subscriber_id).gino.first()
 
     async def create(self, values: TargetCreate):
         obj = {"subscriber_id": values.subscriber_id, "max_count": values.max_count}
         await Target.create(**obj)
 
-    async def remove(self, _id: Subscriber.id):
-        await Target.delete.where(Target.id == _id).gino.status()
+    async def remove(self, subscriber_id: int):
+        await Target.delete.where(Target.id == subscriber_id).gino.status()
 
     async def add_source(self, values: ForwardCreate):
         obj = {
@@ -115,12 +115,12 @@ class CRUDTargets(CRUDBase):
         }
         await Forward.create(**obj)
 
-    async def get_sources_data(self, _id: Target.id) -> List[Forward]:
-        return await Forward.query.where(Forward.target_id == _id).gino.all()
+    async def get_sources_data(self, target_id: int) -> List[Forward]:
+        return await Forward.query.where(Forward.target_id == target_id).gino.all()
 
-    async def get_source_data(self, source_id: Forward.source_id, _id: Target.id) -> Forward:
+    async def get_source_data(self, source_id: Forward.source_id, target_id: int) -> Forward:
         return await Forward.query.where(
-            Forward.source_id == source_id and Forward.target_id == _id
+            (Forward.source_id == source_id) & (Forward.target_id == target_id)
         ).gino.first()
 
     async def update_sources_data(self, values: ForwardUpdate):
@@ -135,14 +135,19 @@ class CRUDTargets(CRUDBase):
         }
         return await Forward.update(**obj).apply()
 
-    async def remove_source_data(self, source_id: Forward.source_id, _id: Target.id):
+    async def remove_source_data(self, source_id: int, target_id: int):
         source = await Forward.query.where(
-            Forward.target_id == _id and Forward.source_id == source_id
+            (Forward.target_id == target_id) & (Forward.source_id == source_id)
         ).gino.first()
         if source:
             await source.delete()
         else:
             logger.warning(f"Value {source_id} does not exist")
+
+    async def get_log_channel(self, target_id: int) -> Forward:
+        return await Forward.query.where(
+            (Forward.target_id == target_id) & (Forward.source_type == "logs")
+        ).gino.first()
 
 
 target = CRUDTargets(Target)
