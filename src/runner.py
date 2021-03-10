@@ -31,12 +31,12 @@ def run_bot():
     from src.database.db import db_setup
     from src.utils.logging import logging_setup
     from src.utils.scheduler import scheduler_setup
-    from src.services.vk.public import vk_scheduler_setup
+    from src.services.social.broadcasters import vk_broadcaster_setup
 
     logging_setup()
     db_setup(runner)
     scheduler_setup(runner)
-    vk_scheduler_setup(runner)
+    vk_broadcaster_setup(runner)
     middlewares_setup(dp)
     filters_setup(dp)
     # noinspection PyUnresolvedReferences

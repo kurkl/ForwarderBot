@@ -1,1 +1,1 @@
-from .user_vk_data import UserVkData
+from .user_data import UserVkData, UserSettings
