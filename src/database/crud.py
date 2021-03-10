@@ -116,7 +116,9 @@ class CRUDTargets(CRUDBase):
         await Forward.create(**obj)
 
     async def get_sources_data(self, target_id: int) -> List[Forward]:
-        return await Forward.query.where(Forward.target_id == target_id).gino.all()
+        return await Forward.query.where(
+            (Forward.target_id == target_id) & ~(Forward.source_type == "logs")
+        ).gino.all()
 
     async def get_source_data(self, source_id: Forward.source_id, target_id: int) -> Forward:
         return await Forward.query.where(

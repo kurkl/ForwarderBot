@@ -1,1 +1,1 @@
-from . import start, users, errors, superuser_settings
+from . import start, users, errors, user_settings

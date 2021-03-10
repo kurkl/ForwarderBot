@@ -1,12 +1,13 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 from aiogram.utils.markdown import hbold
+from aiogram.utils.exceptions import BadRequest
 
 from src.runner import dp
 from src.database import crud, schemas
 from src.utils.keyboards import Constructor
 from src.database.entities import Subscriber
-from src.services.vk.public import vk_scheduler
+from src.services.social.broadcasters import vk_broadcaster
 
 from .states import UserVkData
 from .markups.user import (
@@ -24,8 +25,11 @@ from .markups.user import (
 )
 
 
-@dp.callback_query_handler(actions_cb.filter(action="main"))
-async def cq_user_main_services(query: CallbackQuery):
+@dp.callback_query_handler(actions_cb.filter(action="main"), state="*")
+async def cq_user_main_services(query: CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state:
+        await state.finish()
     await query.message.edit_text("Выбери сервис", reply_markup=main_menu_kb)
 
 
@@ -48,7 +52,9 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
             await UserVkData.set_wall_id.set()
             await query.message.edit_text(
                 f"Доступно {len(walls)}/{walls_headers.max_count} стен\n"
-                f"Введи короткое имя стены, к примеру, для стены vk.com/durov нужно ввести только durov",
+                f"Вставь ссылку на сообщество или стену\n"
+                f"Например https://vk.com/durov или durov\nНа текущий момент "
+                f"поддерживаются только открытые стены",
                 reply_markup=back_to_vk_main_menu_kb,
             )
         else:
@@ -58,7 +64,7 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
             )
 
     if action == "vk_status":
-        active_jobs = vk_scheduler.get_user_jobs(query.from_user.id)
+        active_jobs = vk_broadcaster.get_user_jobs(query.from_user.id)
         if active_jobs:
             await query.answer(f"Активных задач: {len(active_jobs)}", show_alert=True)
         else:
@@ -69,7 +75,7 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
             walls_kb = Constructor.create_inline_kb(
                 [
                     {
-                        "text": f"{wall.source_short_name} tg_id: {wall.to_chat_id}",
+                        "text": f"{wall.source_short_name}",
                         "cb": ({"id": wall.source_id, "action": "wall_view"}, vk_wall_manage_cb),
                     }
                     for wall in walls
@@ -88,9 +94,9 @@ async def cq_user_vk_actions(query: CallbackQuery, subscriber: Subscriber, callb
 
 @dp.message_handler(state=UserVkData.set_wall_id)
 async def fsm_user_add_vk_wall(message: Message, state: FSMContext):
-    wall_id = await UserVkData.get_wall_id_from_domain(message.text)
+    wall_id = await UserVkData.get_wall_id_from_public_url(message.text)
     if not wall_id:
-        return await message.reply(
+        return await message.answer(
             f"{hbold('Ошибка')}\n\nСтена или сообщество не найдено\n\nПопробуй снова",
             reply_markup=back_to_vk_main_menu_kb,
         )
@@ -109,7 +115,7 @@ async def fsm_user_add_vk_wall(message: Message, state: FSMContext):
 async def fsm_user_set_telegram_id(message: Message, state: FSMContext):
     chat_id, error = await UserVkData.get_telegram_id(message.text)
     if error:
-        return await message.reply(
+        return await message.answer(
             f"{hbold('Ошибка')}\n\n{error}\n\nПопробуй снова", reply_markup=back_to_vk_main_menu_kb
         )
     await UserVkData.next()
@@ -161,35 +167,56 @@ async def cq_user_manage_vk_wall(query: CallbackQuery, subscriber: Subscriber, c
     action = callback_data["action"]
     wall_id = int(callback_data["id"])
     wall_info = await crud.target.get_source_data(wall_id, subscriber.id)
+    try:
+        to_channel_link = await dp.bot.export_chat_invite_link(wall_info.to_chat_id)
+    except BadRequest:
+        to_channel_link = wall_info.to_chat_id
+    message_text = (
+        f"Стена: {wall_info.source_short_name}\n"
+        f"репосты в канал: {to_channel_link}\nтаймаут: {wall_info.sleep} мин"
+    )
 
     if action == "wall_view":
-        wall_manage_kb = get_wall_manage_kb(wall_id)
+        wall_active = vk_broadcaster.is_wall_active(query.from_user.id, wall_id, wall_info.to_chat_id)
+        alias = {True: "работает", False: "остановлено"}
+        wall_manage_kb = get_wall_manage_kb(wall_id, wall_active)
         await query.message.edit_text(
-            f"Стена: https://vk.com/{wall_info.source_short_name}\nid: {wall_info.source_id}\n"
-            f"репосты в канал: {wall_info.to_chat_id}\nтаймаут: {wall_info.sleep} мин",
-            reply_markup=wall_manage_kb,
+            f"{message_text}\nстатус: {hbold(alias[wall_active])}", reply_markup=wall_manage_kb
         )
 
     if action == "wall_start":
-        await vk_scheduler.add_job(
-            query.from_user.id, wall_id, wall_info.to_chat_id, wall_info.sleep, wall_info.fetch_count
+        await vk_broadcaster.start_fetch_wall(
+            job_data=(
+                query.from_user.id,
+                wall_id,
+                wall_info.to_chat_id,
+                wall_info.sleep,
+                wall_info.fetch_count,
+            )
         )
-        await query.answer("Запущено")
+        wall_manage_kb = get_wall_manage_kb(wall_id, True)
+        await query.message.edit_text(
+            f"{message_text}\nстатус: {hbold('работает')}", reply_markup=wall_manage_kb
+        )
 
-    if action == "wall_remove":
-        await crud.target.remove_source_data(wall_id, wall_info.target_id)
-        await vk_scheduler.remove_job(query.from_user.id, wall_id, wall_info.to_chat_id)
-        await query.message.edit_text("Удалено", reply_markup=vk_main_menu_kb)
+    if action == "wall_stop":
+        vk_broadcaster.stop_fetch_wall(query.from_user.id, wall_id, wall_info.to_chat_id)
+        wall_manage_kb = get_wall_manage_kb(wall_id, False)
+        await query.message.edit_text(
+            f"{message_text}\nстатус: {hbold('остановлено')}", reply_markup=wall_manage_kb
+        )
 
-    if action == "wall_pause":
-        vk_scheduler.pause_job(query.from_user.id, wall_id, wall_info.to_chat_id)
-        await query.answer("Остановлено", show_alert=True)
-
-    if action == "wall_resume":
-        vk_scheduler.continue_job(query.from_user.id, wall_id, wall_info.to_chat_id)
-        await query.answer("Восстановлено", show_alert=True)
+    if action == "wall_del":
+        await crud.target.remove_source_data(wall_id, subscriber.id)
+        await vk_broadcaster.remove_wall(query.from_user.id, wall_id, wall_info.to_chat_id)
+        await query.message.edit_text("Стена удалена", reply_markup=vk_main_menu_kb)
 
 
 @dp.callback_query_handler(actions_cb.filter(action="twitter_main"))
 async def cq_user_twitter_main(query: CallbackQuery):
     await query.message.edit_text("В разработке", reply_markup=twitter_main_menu_kb)
+
+
+@dp.callback_query_handler(actions_cb.filter(action="instagram_main"))
+async def cq_user_twitter_main(query: CallbackQuery):
+    await query.message.edit_text("В разработке", reply_markup=main_menu_kb)
