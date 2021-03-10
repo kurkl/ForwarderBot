@@ -9,7 +9,7 @@ from src.runner import dp
 from src.settings import TIME_FORMAT
 from src.database.entities import Subscriber
 
-from .markups.user import main_menu_kb
+from .markups.user import main_menu_kb, main_user_settings_menu
 
 
 @dp.message_handler(CommandStart())
@@ -18,7 +18,8 @@ async def cmd_start(message: Message):
     await message.answer(
         f"Привет {hbold(message.from_user.full_name)}.\nБот находится в активной разработке,\n"
         f"возможны ошибки и/или критические баги. Пожалуйста, используйте обратную связь при возникновении вопросов.\n"
-        f"Начать: /service\nПомощь: /help\n"
+        f"Начать: /service\nПомощь: /help\n",
+        reply_markup=main_user_settings_menu,
     )
 
 
