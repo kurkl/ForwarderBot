@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from loguru import logger
+from sqlalchemy import and_
 
 from .schemas import (
     UserCreate,
@@ -105,6 +106,7 @@ class CRUDTargets(CRUDBase):
 
     async def add_source(self, values: ForwardCreate):
         obj = {
+            "idx": values.idx,
             "source_id": values.source_id,
             "source_type": values.source_type,
             "source_short_name": values.source_short_name,
@@ -113,20 +115,33 @@ class CRUDTargets(CRUDBase):
             "target_id": values.target_id,
             "fetch_count": values.fetch_count,
         }
+        source = await self._get_source(values.target_id, values.source_id, values.to_chat_id)
+        if source:
+            raise ValueError
         await Forward.create(**obj)
+
+    async def _get_source(self, target_id: int, source_id: int, to_chat_id: int) -> Forward:
+        return await Forward.query.where(
+            and_(
+                Forward.target_id == target_id,
+                Forward.source_id == source_id,
+                Forward.to_chat_id == to_chat_id,
+            )
+        ).gino.first()
 
     async def get_sources_data(self, target_id: int) -> List[Forward]:
         return await Forward.query.where(
-            (Forward.target_id == target_id) & ~(Forward.source_type == "logs")
+            and_(Forward.target_id == target_id, Forward.source_type != "logs")
         ).gino.all()
 
-    async def get_source_data(self, source_id: Forward.source_id, target_id: int) -> Forward:
+    async def get_source_by_idx(self, target_id: int, idx: str) -> Forward:
         return await Forward.query.where(
-            (Forward.source_id == source_id) & (Forward.target_id == target_id)
+            and_(Forward.target_id == target_id, Forward.idx == idx)
         ).gino.first()
 
-    async def update_sources_data(self, values: ForwardUpdate):
+    async def update_source_data(self, values: ForwardUpdate):
         obj = {
+            "idx": values.idx,
             "source_id": values.source_id,
             "source_type": values.source_type,
             "source_short_name": values.source_short_name,
@@ -135,20 +150,21 @@ class CRUDTargets(CRUDBase):
             "target_id": values.target_id,
             "fetch_count": values.fetch_count,
         }
-        return await Forward.update(**obj).apply()
+        filtered_obj = {key: val for key, val in obj.items() if val}
+        return await Forward.update.values(**filtered_obj).where(Forward.idx == values.idx).gino.status()
 
-    async def remove_source_data(self, source_id: int, target_id: int):
+    async def remove_source_data(self, target_id: int, idx: str):
         source = await Forward.query.where(
-            (Forward.target_id == target_id) & (Forward.source_id == source_id)
+            and_(Forward.target_id == target_id, Forward.idx == idx)
         ).gino.first()
         if source:
             await source.delete()
         else:
-            logger.warning(f"Value {source_id} does not exist")
+            logger.warning(f"Value {idx} does not exist")
 
     async def get_log_channel(self, target_id: int) -> Forward:
         return await Forward.query.where(
-            (Forward.target_id == target_id) & (Forward.source_type == "logs")
+            and_(Forward.target_id == target_id, Forward.source_type == "logs")
         ).gino.first()
 
 

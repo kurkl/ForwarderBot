@@ -52,8 +52,9 @@ class TargetUpdate(TargetBase):
     pass
 
 
-class ForwardBase(BaseModel):
+class ForwardBase(UserInBD):
     target_id: int
+    idx: str
 
 
 class ForwardCreate(ForwardBase):
@@ -67,10 +68,10 @@ class ForwardCreate(ForwardBase):
 
 
 class ForwardUpdate(ForwardBase):
-    source_id: int
-    source_type: str
-    source_short_name: str
-    sleep: int
-    to_chat_id: int
+    source_id: Optional[int]
+    source_type: Optional[str]
+    source_short_name: Optional[str]
+    sleep: Optional[int]
+    to_chat_id: Optional[int]
     admin_access: Optional[bool]
-    fetch_count: int
+    fetch_count: Optional[int]
