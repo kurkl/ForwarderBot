@@ -1,9 +1,10 @@
+from uuid import uuid4
+
 from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 
-from database import schemas
 from src.runner import dp
-from src.database import crud
+from src.database import crud, schemas
 from src.database.entities import Subscriber
 from src.services.social.broadcasters import vk_broadcaster
 
@@ -68,6 +69,7 @@ async def fsm_user_set_log_channel(message: Message, subscriber: Subscriber, sta
 
     await crud.target.add_source(
         schemas.ForwardCreate(
+            idx=str(uuid4()),
             target_id=subscriber.id,
             source_id=channel_id,
             source_type="logs",
