@@ -3,8 +3,8 @@ from datetime import datetime
 
 from aiogram.types import InputMediaPhoto, InputMediaVideo
 
-from runner import bot
-from settings import TIME_FORMAT
+from src.runner import bot
+from src.settings import TIME_FORMAT
 
 
 class TelegramSender:
