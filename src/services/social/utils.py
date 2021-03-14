@@ -10,21 +10,22 @@ from settings import TIME_FORMAT
 class TelegramSender:
     @classmethod
     def prepare_message(cls, msg_data: dict) -> Dict[str, Union[list, dict, bool]]:
+        """
+        TODO: check if items len > 10
+        FIXME: photo with video not sending
+        :param msg_data:
+        :return:
+        """
         media_message = {"text": None, "has_poll": False, "media_data": []}
         media, text_message = msg_data.get("media"), msg_data.get("text")
-        # TODO: check if len(items) >= 10
         if text_message:
             media_message.update({"text": text_message})
         if media:
             if "videos" in media:
-                media_message["media_data"].append(
-                    InputMediaVideo(
-                        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                    )
-                )
                 # media_message["media_data"].extend([InputMediaVideo(video) for video in media["videos"]])
-            # if "photos" in media:
-            #     media_message["media_data"].extend([InputMediaPhoto(photo) for photo in media["photos"]])
+                return None
+            if "photos" in media:
+                media_message["media_data"].extend([InputMediaPhoto(photo) for photo in media["photos"]])
             if "poll" in media:
                 media_message.update({"has_poll": True, "poll_data": dict(media["poll"])})
             if media_message["media_data"]:
@@ -39,6 +40,8 @@ class TelegramSender:
         :param raw_message: A JSON-serialized array with describing items to be sent
         """
         message = cls.prepare_message(raw_message)
+        if not message:
+            raise ValueError
         if message["has_poll"]:
             poll_data = message["poll_data"]
             answers = [answer["text"] for answer in poll_data["answers"]]

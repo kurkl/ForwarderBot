@@ -84,9 +84,9 @@ class VKBroadcaster(RedisPool, VkFetch):
     async def start_fetch_wall(self, job_data: tuple):
         user_id, wall_id, to_chat_id, timeout, fetch_count = job_data
         await self._setup_user_cache(user_id, wall_id, to_chat_id)
-        scheduler.add_job(
+        self.scheduler.add_job(
             self.fetch_public_wall,
-            IntervalTrigger(seconds=timeout),
+            IntervalTrigger(minutes=timeout),
             args=(
                 wall_id,
                 fetch_count,
@@ -97,18 +97,21 @@ class VKBroadcaster(RedisPool, VkFetch):
             next_run_time=datetime.now(),
         )
 
+    async def restart_fetch_wall(self, job_data: tuple):
+        pass
+
     async def remove_wall(self, user_id: int, wall_id: int, to_chat_id: int):
         job = self._get_job_by_id(user_id, wall_id, to_chat_id)
         await self.redis.hdel(f"{user_id}:cache", f"{wall_id}:{to_chat_id}")
         if job:
-            scheduler.remove_job(job.id)
+            self.scheduler.remove_job(job.id)
         else:
             logger.warning("No such task")
 
     def stop_fetch_wall(self, user_id: int, wall_id: int, to_chat_id: int):
         job = self._get_job_by_id(user_id, wall_id, to_chat_id)
         if job:
-            scheduler.remove_job(job.id)
+            self.scheduler.remove_job(job.id)
         else:
             logger.warning("No such task")
 
@@ -138,6 +141,13 @@ class VKBroadcaster(RedisPool, VkFetch):
                             f"стена вк {user_cache[1]}\nНе могу отправить запись в канал {user_cache[2]}\n"
                             f"Убедитесь, что бот не заблокирован и имеет админ права группе/канале",
                         )
+                    except ValueError:
+                        await TelegramSender.send_log_message(
+                            user_logs,
+                            "не могу отправить запись в канал\n Видео или "
+                            "аудио во вложениях в настоящий момент не поддерживаются",
+                        )
+                        logger.error(f"{user_cache} - received data with unsupported attach")
                     except Exception as err:
                         logger.error(f"{user_cache} - another error: {err}")
 
@@ -157,11 +167,13 @@ vk_broadcaster.scheduler.add_listener(vk_broadcaster.event_listener, EVENT_JOB_E
 
 
 async def on_startup(dispatcher: Dispatcher):
+    """Connect to redis pool"""
     await vk_broadcaster.connect()
     logger.info("Start vk broadcaster")
 
 
 async def on_shutdown(dispatcher: Dispatcher):
+    """Disconnect from redis pool"""
     await vk_broadcaster.disconnect()
     logger.info("Shutdown vk broadcaster")
 

@@ -31,9 +31,15 @@ class VkFetch:
         """
         fetch_result = []
         async with self._session() as session:
-            received_records = await session.wall.get(owner_id=wall_id, count=fetch_count, v=5.145)
+            received_records = await session.wall.get(owner_id=wall_id, count=fetch_count + 1, v=5.145)
+            if "is_pinned" in received_records["items"][0]:
+                records = received_records["items"][1:]
+            else:
+                records = received_records["items"][:-1]
 
-            for record in received_records["items"]:
+            for record in records:
+                if "is_pinned" in record:
+                    continue
                 item = {"date": record["date"], "post_id": record["id"]}
                 if "text" in record:
                     item.update({"text": record["text"]})
@@ -43,11 +49,12 @@ class VkFetch:
                         if attach["type"] == "photo":
                             item["media"]["photos"].append(attach["photo"]["sizes"][-1]["url"])
                         if attach["type"] == "video":
-                            video_item = await session.video.get(
-                                owner_id=wall_id, videos=f"{wall_id}_{attach['video']['id']}"
-                            )
-                            file_url_key = list(video_item["items"][0]["files"])[-2]
-                            item["media"]["videos"].append(video_item["items"][0]["files"][file_url_key])
+                            # video_item = await session.video.get(
+                            #     owner_id=wall_id, videos=f"{wall_id}_{attach['video']['id']}"
+                            # )
+                            # file_url_key = list(video_item["items"][0]["files"])[-2]
+                            # item["media"]["videos"].append(video_item["items"][0]["files"][file_url_key])
+                            item["media"]["videos"].append("Not supported!")
                         if attach["type"] == "poll":
                             item["media"]["poll"].update(
                                 {

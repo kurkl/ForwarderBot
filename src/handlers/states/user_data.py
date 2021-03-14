@@ -9,11 +9,11 @@ from src.runner import dp
 from src.settings import VK_TOKEN
 
 
-class UserVkData(StatesGroup):
-    set_wall_id = State()
-    set_telegram_id = State()
-    set_sleep = State()
-    set_fetch_count = State()
+class UserVkSettings(StatesGroup):
+    add_wall_id = State()
+    add_telegram_id = State()
+    add_timeout = State()
+    add_fetch_count = State()
 
     @staticmethod
     async def get_wall_id_from_public_url(url: str) -> Optional[int]:
