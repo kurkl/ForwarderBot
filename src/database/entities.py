@@ -69,13 +69,14 @@ class Forward(db.Model):
     __tablename__ = "forwards"
 
     id = Column(Integer, primary_key=True, unique=True)
+    idx = Column(String, unique=True)
     source_id = Column(BigInteger)
     source_type = Column(String(10))
     source_short_name = Column(String(30))
     to_chat_id = Column(BigInteger)
     sleep = Column(SmallInteger, default=30, nullable=False)
     admin_access = Column(Boolean, server_default=expression.false(), nullable=False)
-    fetch_count = Column(SmallInteger, default=2, nullable=False)
+    fetch_count = Column(SmallInteger, default=1, nullable=False)
     created_dt = Column(DateTime, server_default=func.now(), nullable=False)
     updated_dt = Column(DateTime, server_default=func.now(), nullable=False)
 
