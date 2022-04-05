@@ -1,6 +1,11 @@
-# Import all the models, so that Base has them before being
-# imported by Alembic
+import sqlalchemy as sa
+from sqlalchemy.ext.declarative import declarative_base
 
-from .entities import User, Target, Forward, Blocklist, Subscriber, db
+BaseModel = declarative_base()
 
-__all__ = ("db", "User", "Subscriber", "Target", "Forward", "Blocklist")
+
+class TimeStampMixin(BaseModel):
+    __abstract__ = True
+
+    created_at = sa.Column(sa.DateTime, default=sa.func.now())
+    updated_at = sa.Column(sa.DateTime, default=sa.func.now(), onupdate=sa.func.now())
