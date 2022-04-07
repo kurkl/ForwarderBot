@@ -24,6 +24,8 @@ class AppConfig(BaseAppConfig):
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
     DOMAIN: str
     BOT_PUBLIC_PORT: int = 8080
+    I18N_DOMAIN: str = "forwarder_bot"
+    LOCALES_DIR: str = ""
     # vk settings
     VK_TOKEN: str
     # telegram settings
@@ -33,10 +35,25 @@ class AppConfig(BaseAppConfig):
     # postgres settings
     SQLALCHEMY_DB_URI: PostgresDsn
     # redis
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: str = ""
     REDIS_DB_FSM: int = 0
     REDIS_DB_JOBS: int = 0
     REDIS_DB_CACHE: int = 2
-    REDIS_URI: RedisDsn
+    REDIS_URI: RedisDsn | None = None
+
+    @validator("REDIS_URI", pre=True, allow_reuse=True)
+    def assemble_redis_uri(cls, v: str | None, values: dict) -> str:
+        if isinstance(v, str):
+            return v
+
+        return RedisDsn.build(
+            scheme="redis",
+            password=values.get("REDIS_PASSWORD"),
+            host=values.get("REDIS_HOST"),
+            port=values.get("REDIS_PORT"),
+        )
 
     @validator("WEBHOOK_URL", pre=True, allow_reuse=True)
     def assemble_webhook_url(cls, v: str | None, values: dict) -> str:
