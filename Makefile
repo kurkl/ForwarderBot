@@ -1,11 +1,3 @@
-include .env
-
-default:help
-
-
-start:
-	PYTHONPATH=$(shell pwd):${PYTHONPATH} poetry run python src/bot.py
-
 refactor:
 	poetry run black ./
 	poetry run isort ./
