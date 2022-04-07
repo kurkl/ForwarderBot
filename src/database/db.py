@@ -1,24 +1,20 @@
+from contextlib import asynccontextmanager
+
 from loguru import logger
-from aiogram import Dispatcher
-from aiogram.utils.executor import Executor
-
-from src.settings import POSTGRES_URI
-
-from .entities import db
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
-async def on_startup(dispatcher: Dispatcher):
-    logger.info("Setup PostgreSQL Connection")
-    await db.set_bind(POSTGRES_URI)
-
-
-async def on_shutdown(dispatcher: Dispatcher):
-    bind = db.pop_bind()
-    if bind:
-        logger.info("Close PostgreSQL Connection")
-        await bind.close()
-
-
-def db_setup(executor: Executor):
-    executor.on_startup(on_startup)
-    executor.on_shutdown(on_shutdown)
+@asynccontextmanager
+async def db_session(engine: AsyncEngine) -> AsyncSession:
+    session = None
+    try:
+        async_session = sessionmaker(engine, echo=True)
+        session = async_session()
+        yield session
+        await session.commit()
+    except Exception as err:
+        logger.exception(err)
+        await session.rollback()
+    finally:
+        await session.close()
