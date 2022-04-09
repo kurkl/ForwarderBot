@@ -4,11 +4,13 @@ from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 
-from src.settings import TIME_FORMAT
-
 from .base import BaseModel, TimeStampMixin
+
+
+# from src.config import settings
 
 
 class SubscriptionType(Enum):
@@ -44,7 +46,7 @@ class User(TimeStampMixin):
     def __repr__(self):
         return (
             f"<User(telegram_id={self.telegram_id}, is_active={self.is_active}, "
-            f"updated_dt={self.updated_dt.strftime(TIME_FORMAT)})>"
+            # f"updated_dt={self.updated_dt.strftime(settings.TIME_FORMAT)})>"
         )
 
     @property
@@ -63,9 +65,12 @@ class AbstractProvider(BaseModel):
 
     __abstract__ = True
 
-    type = sa.Column(sa.ForeignKey("provider_types.id"))
     is_admin_access = sa.Column(sa.Boolean, default=False)
     is_custom = sa.Column(sa.Boolean, default=False)
+
+    @declared_attr
+    def type_id(self):
+        return sa.Column(sa.ForeignKey("provider_types.id"))
 
 
 class ProviderType(BaseModel):
@@ -82,6 +87,7 @@ class Provider(AbstractProvider, TimeStampMixin):
     """
     Stores data where to forward messages from
     """
+
     __tablename__ = "providers"
 
     id = sa.Column(UUID(as_uuid=True), default=uuid4, primary_key=True)
@@ -110,14 +116,14 @@ class ExchangeSettings(BaseModel):
     id = sa.Column(UUID(as_uuid=True), default=uuid4, primary_key=True)
     provider_id = sa.Column(
         sa.ForeignKey(
-            "provider_service.id",
+            "providers.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         )
     )
     consumer_id = sa.Column(
         sa.ForeignKey(
-            "consumer_service.id",
+            "consumers.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         )
@@ -132,7 +138,7 @@ class ExchangeSettings(BaseModel):
         return f"<ExchangeSettings(id={self.id}, provider_id={self.provider_id}, consumer_id={self.consumer_id})>"
 
 
-class ProviderMessage(BaseModel, TimeStampMixin):
+class ProviderMessage(TimeStampMixin):
     """
     Stores forwarded messages
     """
@@ -143,7 +149,7 @@ class ProviderMessage(BaseModel, TimeStampMixin):
     user_id = sa.Column(sa.ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
     exchange_settings_id = sa.Column(
         sa.ForeignKey(
-            "exchange_services_settings.id",
+            "exchange_settings.id",
             ondelete="CASCADE",
             onupdate="CASCADE",
         )

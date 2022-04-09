@@ -36,7 +36,7 @@ class AppConfig(BaseAppConfig):
     SQLALCHEMY_DB_URI: PostgresDsn
     # redis
     REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    REDIS_PORT: str = "6379"
     REDIS_PASSWORD: str = ""
     REDIS_DB_FSM: int = 0
     REDIS_DB_JOBS: int = 0
@@ -92,4 +92,4 @@ def get_app_config() -> AppConfig:
     return config()
 
 
-setting = get_app_config()
+settings = get_app_config()
