@@ -7,14 +7,12 @@ lint:
 	poetry run isort --check-only ./
 
 
-docker-up:
-	docker-compose up -d --remove-orphans
+up:
+	docker-compose -f docker-compose-local.yml up
 
-docker-build:
-	docker-compose build
+build:
+	docker build -t forwarder-bot/pgbouncer -f docker/pgbouncer/Dockerfile .
+	docker build -t forwarder-bot/postgres -f docker/postgres/Dockerfile .
 
-docker-down:
-	docker-compose down
-
-docker-destroy:
-	docker-compose down -v --remove-orphans
+stop:
+	docker-compose -f docker-compose-local.yml down

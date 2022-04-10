@@ -3,16 +3,28 @@ services:
 
   db:
     container_name: forwarder_bot_db
-    image: postgres:13-alpine
+    image: forwarder-bot/postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: on-failure
     ports:
-      - "5441:5432"
+      - "0.0.0.0:5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
 
+  pgbouncer:
+    container_name: forwarder_bot_pgbouncer
+    image: forwarder-bot/pgbouncer
+    restart: on-failure
+    ports:
+      - "0.0.0.0:6432:6432"
+    depends_on:
+      - db
+
 volumes:
   pgdata:
+
+networks:
+  default:
