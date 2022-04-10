@@ -417,6 +417,14 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "pybabel"
+version = "0.0.0.dev0"
+description = "The compiler for next generation Python."
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pydantic"
 version = "1.9.0"
 description = "Data validation and settings management using python 3.6 type hinting"
@@ -658,7 +666,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "b6fcd70d672abb36ff3310fa67e820869d91b3597506d966ead1751a175d9bb2"
+content-hash = "373a4877827d9ff5531d65f0965dbe93cf3894f05d16acf24d16184cbc186b71"
 
 [metadata.files]
 aiogram = [
@@ -1166,6 +1174,10 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.9.3-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:99485cab9ba0fa9b84f1f9e1fef106f44a46ef6afdeec8885e0b88d0772b49e8"},
     {file = "psycopg2_binary-2.9.3-cp39-cp39-win32.whl", hash = "sha256:46f0e0a6b5fa5851bbd9ab1bc805eef362d3a230fbdfbc209f4a236d0a7a990d"},
     {file = "psycopg2_binary-2.9.3-cp39-cp39-win_amd64.whl", hash = "sha256:accfe7e982411da3178ec690baaceaad3c278652998b2c45828aaac66cd8285f"},
+]
+pybabel = [
+    {file = "pybabel-0.0.0.dev0-py3-none-any.whl", hash = "sha256:deaa10e9b6c841a865f3698ec23fd77276bfc44efb3c602b4213e314ac712bf3"},
+    {file = "pybabel-0.0.0.dev0.tar.gz", hash = "sha256:166c7e42cc72c7decfefe5ae11b66fb2d59de95f459f47e2a2bc9075f91d3eaa"},
 ]
 pydantic = [
     {file = "pydantic-1.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cb23bcc093697cdea2708baae4f9ba0e972960a835af22560f6ae4e7e47d33f5"},

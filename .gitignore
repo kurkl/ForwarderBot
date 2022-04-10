@@ -107,7 +107,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+.env.dev
 .venv
 env/
 venv/
@@ -142,3 +142,8 @@ cython_debug/
 .idea
 .vscode
 foo.py
+
+# Docker stuff
+/docker/pgbouncer/userlist.txt
+/docker/pgbouncer/pgbouncer.ini
+/docker/postgres/postgresql.conf
