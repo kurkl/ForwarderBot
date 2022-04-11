@@ -9,7 +9,6 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from .base import BaseModel, TimeStampMixin
 
-
 # from src.config import settings
 
 
