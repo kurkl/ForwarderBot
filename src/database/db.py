@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 async def db_session(engine: AsyncEngine) -> AsyncSession:
     session = None
     try:
-        async_session = sessionmaker(engine, echo=True)
+        async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
         session = async_session()
         yield session
         await session.commit()

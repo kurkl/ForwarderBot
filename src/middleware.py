@@ -3,31 +3,24 @@ from datetime import datetime
 from loguru import logger
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.middlewares import BaseMiddleware
+from aiogram.contrib.middlewares.i18n import I18nMiddleware
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
-from src.database import crud, schemas
+from src.database.schemas import UserCreate
+from src.database.repositories import UserRepository, get_repository
 
 
 class ACLMiddleware(BaseMiddleware):
     async def setup_chat(self, data: dict, tg_user: types.User):
-        if not tg_user.first_name == "Telegram":  # TODO: ???
-            user_id = tg_user.id
+        if tg_user.first_name == "Telegram":
+            return
+        user_repo = get_repository(UserRepository, self.manager.bot["engine"])
+        user_id = tg_user.id
+        user = await user_repo.get_object(filters={"telegram_id": user_id})
+        if not user:
+            user = await user_repo.create(UserCreate(telegram_id=user_id))
 
-            user = await crud.user.get(user_id)
-            if not user:
-                user = await crud.user.create(schemas.UserCreate(telegram_id=user_id))
-
-            subscriber = await crud.subscriber.get(user.id)
-
-            if not subscriber:
-                subscriber = await crud.subscriber.create(schemas.SubscriberCreate(subscriber_id=user.id))
-
-            targets = await crud.target.get(subscriber.id)
-
-            if not targets:
-                await crud.target.create(schemas.TargetCreate(subscriber_id=subscriber.id))
-
-            data["user"], data["subscriber"] = user, subscriber
+        data["user"] = user
 
     async def on_pre_process_message(self, message: types.Message, data: dict):
         await self.setup_chat(data, message.from_user)
