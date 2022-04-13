@@ -1,39 +1,26 @@
 import asyncio
-from logging.config import fileConfig
 
 from alembic import context
-from environs import Env
 from sqlalchemy import pool, engine_from_config
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-# TODO: import db url from app config
-env = Env()
-env.read_env(".env.dev")
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
 
-config = context.config
 import sys  # noqa
 
-sys.path.append("")
+sys.path.append("..")
 
+from src.config import settings  # noqa
 from src.database import BaseModel  # noqa
 
 target_metadata = BaseModel.metadata
 
 
-def get_uri():
-    db_path = env.str("SQLALCHEMY_DB_URI")
-    return db_path
-
-
-sqlalchemy_db_uri = get_uri()
-
-config.set_main_option("sqlalchemy.url", sqlalchemy_db_uri)
+config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DB_URI)
 
 
 def run_migrations_offline():
