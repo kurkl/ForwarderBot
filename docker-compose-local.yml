@@ -1,11 +1,22 @@
 version: '3'
 services:
 
+  nginx:
+    container_name: forwarder_bot_nginx
+    image: awnulled/forwarder-bot/nginx
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+
   app:
     container_name: forwarder_bot_app
     image: awnulled/forwarder-bot/app
-    restart: on-failure
-    command: bash -c "gunicorn src.main:create_bot_app
+    restart: always
+    command: bash -c "cd src/ &&
+                      ./prestart.sh &&
+                      gunicorn main:create_bot_app
                       -k aiohttp.GunicornWebWorker
                       -b 0.0.0.0:80
                       --keep-alive 200
@@ -17,6 +28,7 @@ services:
       - ./src:/app/src
     env_file:
       - .env.dev
+
   db:
     container_name: forwarder_bot_db
     image: awnulled/forwarder-bot/postgres
@@ -33,7 +45,7 @@ services:
   pgbouncer:
     container_name: forwarder_bot_pgbouncer
     image: awnulled/forwarder-bot/pgbouncer
-    restart: on-failure
+    restart: always
     ports:
       - "0.0.0.0:6432:6432"
     depends_on:
@@ -42,7 +54,7 @@ services:
   redis:
     container_name: forwarder_bot_redis
     image: redis:6-buster
-    restart: on-failure
+    restart: always
     command: --appendonly yes
     volumes:
       - redisdata:/data
