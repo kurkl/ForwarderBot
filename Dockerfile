@@ -7,3 +7,4 @@ RUN cd src/ && pip3 install poetry
 RUN cd src/ && poetry config virtualenvs.create false
 RUN cd src/ && poetry install --no-dev
 COPY src/ /app/src/
+RUN chmod +x /app/src/prestart.sh
