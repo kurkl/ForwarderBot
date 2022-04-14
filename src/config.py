@@ -38,12 +38,12 @@ class AppConfig(BaseAppConfig):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: str = "6379"
     REDIS_PASSWORD: str = ""
-    REDIS_DB_FSM: int = 0
-    REDIS_DB_JOBS: int = 0
+    REDIS_DB_JOBS: int = 1
     REDIS_DB_CACHE: int = 2
-    REDIS_URI: RedisDsn | None = None
+    REDIS_BASE_URI: RedisDsn | None = None
+    REDIS_URI_FSM: str = f"{REDIS_BASE_URI}/0"
 
-    @validator("REDIS_URI", pre=True, allow_reuse=True)
+    @validator("REDIS_BASE_URI", pre=True, allow_reuse=True)
     def assemble_redis_uri(cls, v: str | None, values: dict) -> str:
         if isinstance(v, str):
             return v
