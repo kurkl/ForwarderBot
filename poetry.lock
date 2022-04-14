@@ -1,19 +1,32 @@
 [[package]]
-name = "aiogram"
-version = "2.19"
-description = "Is a pretty simple and fully asynchronous framework for Telegram Bot API"
+name = "aiofiles"
+version = "0.8.0"
+description = "File support for asyncio."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6,<4.0"
+
+[[package]]
+name = "aiogram"
+version = "3.0.0b2"
+description = "Modern and fully asynchronous framework for Telegram Bot API"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-aiohttp = ">=3.8.0,<3.9.0"
-Babel = ">=2.9.1,<2.10.0"
-certifi = ">=2021.10.8"
+aiofiles = ">=0.8.0,<0.9.0"
+aiohttp = ">=3.8.1,<4.0.0"
+magic-filter = ">=1.0.5,<2.0.0"
+pydantic = ">=1.9.0,<2.0.0"
+Pygments = ">=2.11.2,<3.0.0"
 
 [package.extras]
-fast = ["uvloop (>=0.16.0,<0.17.0)", "ujson (>=1.35)"]
-proxy = ["aiohttp-socks (>=0.5.3,<0.6.0)"]
+i18n = ["Babel (>=2.9.1,<3.0.0)"]
+docs = ["Sphinx (>=4.2.0,<5.0.0)", "Sphinx-Substitution-Extensions (>=2020.9.30,<2021.0.0)", "furo (>=2022.2.14,<2023.0.0)", "markdown-include (>=0.6,<0.7)", "pygments (>=2.4,<3.0)", "pymdown-extensions (>=9.2,<10.0)", "sphinx-autobuild (>=2021.3.14,<2022.0.0)", "sphinx-copybutton (>=0.5.0,<0.6.0)", "sphinx-intl (>=2.0.1,<3.0.0)", "sphinx-prompt (>=1.5.0,<2.0.0)", "towncrier (>=21.9.0,<22.0.0)"]
+proxy = ["aiohttp-socks (>=0.7.1,<0.8.0)"]
+redis = ["aioredis (>=2.0.1,<3.0.0)"]
+fast = ["uvloop (>=0.16.0,<0.17.0)"]
 
 [[package]]
 name = "aiohttp"
@@ -163,17 +176,6 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
 
 [[package]]
-name = "babel"
-version = "2.9.1"
-description = "Internationalization utilities"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[package.dependencies]
-pytz = ">=2015.7"
-
-[[package]]
 name = "black"
 version = "22.3.0"
 description = "The uncompromising code formatter."
@@ -198,7 +200,7 @@ uvloop = ["uvloop (>=0.15.2)"]
 name = "certifi"
 version = "2021.10.8"
 description = "Python package for providing Mozilla's CA Bundle."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -335,6 +337,14 @@ win32-setctime = {version = ">=1.0.0", markers = "sys_platform == \"win32\""}
 dev = ["colorama (>=0.3.4)", "docutils (==0.16)", "flake8 (>=3.7.7)", "tox (>=3.9.0)", "pytest (>=4.6.2)", "pytest-cov (>=2.7.1)", "black (>=19.10b0)", "isort (>=5.1.1)", "Sphinx (>=4.1.1)", "sphinx-autobuild (>=0.7.1)", "sphinx-rtd-theme (>=0.4.3)"]
 
 [[package]]
+name = "magic-filter"
+version = "1.0.6"
+description = "This package provides magic filter based on dynamic attribute getter"
+category = "main"
+optional = false
+python-versions = ">=3.6.2,<4.0.0"
+
+[[package]]
 name = "mako"
 version = "1.2.0"
 description = "A super-fast templating language that borrows the best ideas from the existing templating languages."
@@ -452,6 +462,14 @@ typing-extensions = ">=3.7.4.3"
 [package.extras]
 dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
+
+[[package]]
+name = "pygments"
+version = "2.11.2"
+description = "Pygments is a syntax highlighting package written in Python."
+category = "main"
+optional = false
+python-versions = ">=3.5"
 
 [[package]]
 name = "pyparsing"
@@ -711,12 +729,16 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5d1b180bb2df4d9cba3ac5fc17125c85bf548a2d3f6e8e4e82ff7cca1aba9056"
+content-hash = "62e710bf2fb6d52bc4ef42b7c55207001a93b583f5a13b1c93dec1e5e9ecaaa3"
 
 [metadata.files]
+aiofiles = [
+    {file = "aiofiles-0.8.0-py3-none-any.whl", hash = "sha256:7a973fc22b29e9962d0897805ace5856e6a566ab1f0c8e5c91ff6c866519c937"},
+    {file = "aiofiles-0.8.0.tar.gz", hash = "sha256:8334f23235248a3b2e83b2c3a78a22674f39969b96397126cc93664d9a901e59"},
+]
 aiogram = [
-    {file = "aiogram-2.19-py3-none-any.whl", hash = "sha256:1ffb7e22e7d06bab0009cc2e9d5191a74273c8c482b0b782dcfde3deeeccbef0"},
-    {file = "aiogram-2.19.tar.gz", hash = "sha256:60ef7564a6fd2def9057d6f097ac18da99346a758a25fad3f6a552c6672baabe"},
+    {file = "aiogram-3.0.0b2-py3-none-any.whl", hash = "sha256:bf1ff61669cf56b680dd7cd38e6a340bbf88021da7637ccf8aa58c74d64a9ab9"},
+    {file = "aiogram-3.0.0b2.tar.gz", hash = "sha256:4a8d8929989a4150988650d18a9a8b13e7145b6f8ad368056f8eca6d246c42e8"},
 ]
 aiohttp = [
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1ed0b6477896559f17b9eaeb6d38e07f7f9ffe40b9f0f9627ae8b9926ae260a8"},
@@ -851,10 +873,6 @@ asyncpg = [
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
-]
-babel = [
-    {file = "Babel-2.9.1-py2.py3-none-any.whl", hash = "sha256:ab49e12b91d937cd11f0b67cb259a57ab4ad2b59ac7a3b41d6c06c0ac5b0def9"},
-    {file = "Babel-2.9.1.tar.gz", hash = "sha256:bc0c176f9f6a994582230df350aa6e05ba2ebe4b3ac317eab29d9be5d2768da0"},
 ]
 black = [
     {file = "black-22.3.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:2497f9c2386572e28921fa8bec7be3e51de6801f7459dffd6e62492531c47e09"},
@@ -1038,6 +1056,10 @@ isort = [
 loguru = [
     {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
     {file = "loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},
+]
+magic-filter = [
+    {file = "magic-filter-1.0.6.tar.gz", hash = "sha256:dd022b088df644b94fd087b4ef8bb3eabb7d96dfc93f59ae9a859ca26881ef61"},
+    {file = "magic_filter-1.0.6-py3-none-any.whl", hash = "sha256:499a76a4c023fd6e90e49c4fca6edaf338725c3a923987a6dcdb52fdf4d93ed9"},
 ]
 mako = [
     {file = "Mako-1.2.0-py3-none-any.whl", hash = "sha256:23aab11fdbbb0f1051b93793a58323ff937e98e34aece1c4219675122e57e4ba"},
@@ -1264,6 +1286,10 @@ pydantic = [
     {file = "pydantic-1.9.0-cp39-cp39-win_amd64.whl", hash = "sha256:2cc6a4cb8a118ffec2ca5fcb47afbacb4f16d0ab8b7350ddea5e8ef7bcc53a16"},
     {file = "pydantic-1.9.0-py3-none-any.whl", hash = "sha256:085ca1de245782e9b46cefcf99deecc67d418737a1fd3f6a4f511344b613a5b3"},
     {file = "pydantic-1.9.0.tar.gz", hash = "sha256:742645059757a56ecd886faf4ed2441b9c0cd406079c2b4bee51bcc3fbcd510a"},
+]
+pygments = [
+    {file = "Pygments-2.11.2-py3-none-any.whl", hash = "sha256:44238f1b60a76d78fc8ca0528ee429702aae011c265fe6a8dd8b63049ae41c65"},
+    {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},

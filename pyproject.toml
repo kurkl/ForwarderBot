@@ -9,7 +9,7 @@ python = "^3.10"
 gunicorn = "^20.1.0"
 aiohttp = "^3.8.1"
 # Telegram api
-aiogram = "^2.19"
+aiogram = "3.0.0b2"
 # Database
 SQLAlchemy = "^1.4.34"
 alembic = "^1.7.7"
