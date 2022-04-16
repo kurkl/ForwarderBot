@@ -26,6 +26,7 @@ services:
       - db
     volumes:
       - ./src:/app/src
+      - app_logs:/app/src/logs
     env_file:
       - .env.dev
 
@@ -64,6 +65,7 @@ services:
 volumes:
   pgdata:
   redisdata:
+  app_logs:
 
 networks:
   default:

@@ -1,36 +1,32 @@
-from datetime import datetime
+from typing import Any, Callable, Awaitable
 
-from loguru import logger
-from aiogram import Dispatcher, types
-from aiogram.dispatcher.middlewares import BaseMiddleware
-from aiogram.contrib.middlewares.i18n import I18nMiddleware
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram import BaseMiddleware, types
 
-from src.database.schemas import UserCreate
-from src.database.repositories import UserRepository, get_repository
+from database.db import db_session
 
 
 class ACLMiddleware(BaseMiddleware):
-    async def setup_chat(self, data: dict, tg_user: types.User):
-        if tg_user.first_name == "Telegram":
-            return
-        user_repo = get_repository(UserRepository, self.manager.bot["engine"])
-        user_id = tg_user.id
-        user = await user_repo.get_object(filters={"telegram_id": user_id})
-        if not user:
-            user = await user_repo.create(UserCreate(telegram_id=user_id))
-
-        data["user"] = user
-
-    async def on_pre_process_message(self, message: types.Message, data: dict):
-        await self.setup_chat(data, message.from_user)
-
-    async def on_pre_process_callback_query(self, query: types.CallbackQuery, data: dict):
-        await self.setup_chat(data, query.from_user)
+    async def __call__(
+        self,
+        handler: Callable[[types.TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: types.TelegramObject,
+        data: dict[str, Any],
+    ):
+        pass
 
 
-def middlewares_setup(dispatcher: Dispatcher):
-    logger.info("Configure middlewares")
+class DBSessionMiddleware(BaseMiddleware):
+    def __init__(self, engine):
+        super().__init__()
+        self.engine = engine
 
-    dispatcher.middleware.setup(LoggingMiddleware("bot"))
-    dispatcher.middleware.setup(ACLMiddleware())
+    async def __call__(
+        self,
+        handler: Callable[[types.TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: types.TelegramObject,
+        data: dict[str, Any],
+    ):
+        async with db_session(self.engine) as session:
+            data["session"] = session
+
+            return await handler(event, data)

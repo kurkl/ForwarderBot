@@ -1,8 +1,10 @@
+import logging
 from contextlib import asynccontextmanager
 
-from loguru import logger
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
