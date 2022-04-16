@@ -1,8 +1,59 @@
+import os
 from enum import Enum
 from typing import Type
 from functools import lru_cache
+from logging.config import dictConfig
 
 from pydantic import RedisDsn, PostgresDsn, BaseSettings, validator
+
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s.%(funcName)s: %(message)s"},
+        "gunicorn": {"format": "%(name)s.%(funcName)s: %(message)s"},
+    },
+    "handlers": {
+        "stdout": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+        "gunicorn_file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "gunicorn",
+            "filename": "logs/gunicorn.log",
+            "maxBytes": 50 * 1024,
+            "backupCount": 20,
+        },
+        "main_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "standard",
+            "filename": "logs/main.log",
+            "maxBytes": 50 * 1024,
+            "backupCount": 10,
+        },
+    },
+    "loggers": {
+        "gunicorn": {
+            "handlers": ["stdout", "gunicorn_file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "root": {
+            "handlers": ["stdout", "main_file"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
+}
+
+
+def setup_logging():
+    os.makedirs("logs", exist_ok=True)
+    dictConfig(LOGGING_CONFIG)
 
 
 class AppEnvironments(Enum):
@@ -41,7 +92,6 @@ class AppConfig(BaseAppConfig):
     REDIS_DB_JOBS: int = 1
     REDIS_DB_CACHE: int = 2
     REDIS_BASE_URI: RedisDsn | None = None
-    REDIS_URI_FSM: str = f"{REDIS_BASE_URI}/0"
 
     @validator("REDIS_BASE_URI", pre=True, allow_reuse=True)
     def assemble_redis_uri(cls, v: str | None, values: dict) -> str:

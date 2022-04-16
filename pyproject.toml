@@ -18,12 +18,9 @@ asyncpg = "^-1.25.0"
 # Memory storage
 redis = "^4.2.1"
 aioredis = "^2.0.1"
-# Vkontakte api
-aiovk = "^4.0.0"
 # Logging, retries, task scheduler, etc
 environs = "^9.3.0"
 APScheduler = "^3.7.0"
-loguru = "^0.6.0"
 pydantic = "^1.7.3"
 tenacity = "^8.0.1"
 python-dotenv = "^0.20.0"
