@@ -8,7 +8,8 @@ from aiogram.dispatcher.webhook.aiohttp_server import SimpleRequestHandler
 
 from config import settings, setup_logging
 from handlers import system
-from middleware import DBSessionMiddleware
+from middlewares import ACLMiddleware, DBSessionMiddleware
+from default_commands import set_default_commands
 
 setup_logging()
 
@@ -39,9 +40,12 @@ async def create_bot_app() -> web.Application:
     # Register middlewares
     dp.message.middleware(DBSessionMiddleware(engine))
     dp.callback_query.middleware(DBSessionMiddleware(engine))
+    dp.message.middleware(ACLMiddleware())
 
     # Register handlers
     dp.include_router(system.router)
+
+    await set_default_commands(bot)
 
     app.on_startup.append(on_startup_webhook)
     app.on_shutdown.append(on_shutdown_webhook)
