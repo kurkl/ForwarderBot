@@ -8,7 +8,10 @@ lint:
 
 
 up:
-	docker-compose -f docker-compose-local.yml up
+	docker-compose -f docker-compose-local.yml up -d
+
+services:
+	docker-compose -f docker-compose-local.yml up -d --force-recreate --remove-orphans db redis pgbouncer
 
 down:
 	docker-compose -f docker-compose-local.yml down
