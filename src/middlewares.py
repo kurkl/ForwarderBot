@@ -1,8 +1,10 @@
-from typing import Any, Callable, Awaitable
+from typing import Any, Callable, Awaitable, cast
 
 from aiogram import BaseMiddleware, types
 
 from database.db import db_session
+from database.schemas import UserCreateSchema
+from database.repositories import UserRepository, get_repository
 
 
 class ACLMiddleware(BaseMiddleware):
@@ -12,7 +14,16 @@ class ACLMiddleware(BaseMiddleware):
         event: types.TelegramObject,
         data: dict[str, Any],
     ):
-        pass
+        event = cast(types.Message, event)
+        session = data.get("session")
+        user_repository = get_repository(UserRepository, session)
+        user = await user_repository.get_object({"telegram_id": event.from_user.id})
+        if not user:
+            user = await user_repository.create_object(UserCreateSchema(telegram_id=event.from_user.id))
+
+        data["user"] = user
+
+        return await handler(event, data)
 
 
 class DBSessionMiddleware(BaseMiddleware):
