@@ -7,7 +7,7 @@ from aiogram.dispatcher.fsm.storage.redis import RedisStorage
 from aiogram.dispatcher.webhook.aiohttp_server import SimpleRequestHandler
 
 from config import settings, setup_logging
-from handlers import system
+from handlers import users, system
 from middlewares import ACLMiddleware, DBSessionMiddleware
 from default_commands import set_default_commands
 
@@ -41,9 +41,11 @@ async def create_bot_app() -> web.Application:
     dp.message.middleware(DBSessionMiddleware(engine))
     dp.callback_query.middleware(DBSessionMiddleware(engine))
     dp.message.middleware(ACLMiddleware())
+    dp.callback_query.middleware(ACLMiddleware())
 
     # Register handlers
     dp.include_router(system.router)
+    dp.include_router(users.router)
 
     await set_default_commands(bot)
 
@@ -55,4 +57,4 @@ async def create_bot_app() -> web.Application:
 
 
 if __name__ == "__main__":
-    web.run_app(create_bot_app(), host="localhost", port=80)
+    web.run_app(create_bot_app(), host="localhost", port=8080)
