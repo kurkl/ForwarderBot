@@ -1,1 +1,1 @@
-from .user_data import UserSettings, UserVkSettings
+# from .user_data import UserSettings, UserVkSettings

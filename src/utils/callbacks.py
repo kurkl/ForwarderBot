@@ -6,13 +6,14 @@ from aiogram.dispatcher.filters.callback_data import CallbackData
 class Actions(str, Enum):
     idle = "Главное меню"
     back = "Назад"
-    next = "Вперед"
+    start = "Начать"
 
 
 class MainUserMenu(str, Enum):
-    start = "Начать"
+    start = Actions.start
     settings = "Настройки"
     faq = "FAQ"
+    idle = Actions.idle
 
 
 class ProvidersUserMenu(str, Enum):
@@ -20,18 +21,23 @@ class ProvidersUserMenu(str, Enum):
     twitter = "Twitter"
     instagram = "Instagram"
     telegram = "Telegram"
+    back = Actions.back
 
 
 class VkActionsMenu(str, Enum):
     add = "Добавить стену"
     view = "Просмотр стен"
-    start = "Начать"
+    start = Actions.start
     settings = "Настройки"
     faq = "FAQ"
     status = "Статус"
+    back = Actions.back
 
 
 class UserMenuCallback(CallbackData, prefix="menu"):
     main_nav: MainUserMenu | None = None
     providers_nav: ProvidersUserMenu | None = None
-    action: Actions | None = None
+
+
+class VkServiceMenuCallback(CallbackData, prefix="vk_menu"):
+    main_nav: VkActionsMenu | None = None

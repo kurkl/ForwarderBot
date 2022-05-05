@@ -3,14 +3,21 @@ from typing import cast
 
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.utils.callbacks import Actions, MainUserMenu, UserMenuCallback, ProvidersUserMenu
+from src.utils.callbacks import (
+    Actions,
+    MainUserMenu,
+    VkActionsMenu,
+    UserMenuCallback,
+    ProvidersUserMenu,
+    VkServiceMenuCallback,
+)
 from src.handlers.markups.base import BaseMarkups
 
 logger = logging.getLogger(__name__)
 
 
 class UserMarkups(BaseMarkups):
-    def idle_user_menu(self, once: bool = False) -> InlineKeyboardButton | ReplyKeyboardMarkup:
+    def back_to_idle(self, once: bool = False) -> InlineKeyboardButton | ReplyKeyboardMarkup:
         idle = Actions.idle
         if not once:
             return InlineKeyboardButton(
@@ -22,18 +29,6 @@ class UserMarkups(BaseMarkups):
             self._get_new_builder()
             .button(text=idle, callback_data=UserMenuCallback(action=Actions.idle))
             .as_markup()
-        )
-
-    def back_button(self, once: bool = False) -> InlineKeyboardButton | ReplyKeyboardMarkup:
-        back = Actions.back
-        if not once:
-            return InlineKeyboardButton(
-                text=back,
-                callback_data=UserMenuCallback(action=back).pack(),
-            )
-
-        return (
-            self._get_new_builder().button(text=back, callback_data=UserMenuCallback(action=back)).as_markup()
         )
 
     @property
@@ -55,13 +50,17 @@ class UserMarkups(BaseMarkups):
                 text=item,
                 callback_data=UserMenuCallback(providers_nav=cast(ProvidersUserMenu, item)),
             )
-        builder.add(cast(KeyboardButton, self.idle_user_menu()))
+        builder.add(cast(KeyboardButton, self.back_to_idle()))
 
         return builder.adjust(2, 2, 1).as_markup()
 
     @property
     def vk_main_menu(self) -> InlineKeyboardMarkup:
-        pass
+        builder = self._get_new_builder()
+        for item in VkActionsMenu:
+            builder.button(text=item, callback_data=VkServiceMenuCallback(main_nav=cast(VkActionsMenu, item)))
+
+        return builder.adjust(2, 2, 2, 1).as_markup()
 
 
 user_markups = UserMarkups()

@@ -1,12 +1,6 @@
 from typing import Tuple, Union, Optional
 
-from aiovk import API, TokenSession
-from loguru import logger
-from aiogram.utils.exceptions import BotBlocked, ChatNotFound, ChatAdminRequired
 from aiogram.dispatcher.filters.state import State, StatesGroup
-
-from src.runner import dp
-from src.settings import VK_TOKEN
 
 
 class UserVkSettings(StatesGroup):
